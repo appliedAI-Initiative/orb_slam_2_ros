@@ -2,7 +2,7 @@
   <node name="orb_slam2_mono" pkg="orb_slam2_ros"
       type="orb_slam2_ros_mono" args="
           $(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt
-          $(find orb_slam2_ros)/orb_slam2/config/config.yaml"
+          $(find orb_slam2_ros)/orb_slam2/config/RealSenseMono.yaml"
       output="screen">
   </node>
 </launch>
