@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
-  <name>orb_slam2</name>
-  <version>0.0.0</version>
+  <name>orb_slam2_ros</name>
+  <version>0.0.1</version>
   <description>ORB SLAM2</description>
 
   <maintainer email="post@lennarthaller.de">Lennart Haller</maintainer>
@@ -11,8 +11,10 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>cv_bridge</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>std_msgs</run_depend>
+  <run_depend>cv_bridge</run_depend>
 
   <export>
 
