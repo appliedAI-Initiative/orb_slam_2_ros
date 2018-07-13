@@ -18,36 +18,25 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ORBSLAM2_ROS_MONONODE_H_
-#define ORBSLAM2_ROS_MONONODE_H_
-
-#include <iostream>
-#include <algorithm>
-#include <fstream>
-#include <chrono>
+#ifndef ORBSLAM2_ROS_NODE_H_
+#define ORBSLAM2_ROS_NODE_H_
 
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
-#include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.h>
-#include <opencv2/core/core.hpp>
 #include <tf/transform_broadcaster.h>
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/core/core.hpp>
 
-#include "System.h"
-#include "Node.h"
 
 
-class MonoNode : public Node
+class Node
 {
   public:
-    MonoNode (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
-    ~MonoNode ();
-    void ImageCallback (const sensor_msgs::ImageConstPtr& msg);
+    Node ();
+    ~Node ();
 
-  private:
-    ORB_SLAM2::System *orb_slam;
-    image_transport::Subscriber image_subscriber;
-    image_transport::Publisher rendered_image_publisher;
+  protected:
+    tf::Transform TransformFromMat (cv::Mat position_mat);
 };
 
-#endif //ORBSLAM2_ROS_MONONODE_H_
+#endif //ORBSLAM2_ROS_NODE_H_

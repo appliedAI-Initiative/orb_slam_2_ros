@@ -74,12 +74,13 @@ void MonoNode::ImageCallback (const sensor_msgs::ImageConstPtr& msg) {
       return;
   }
 
-  orb_slam->TrackMonocular(cv_in_ptr->image,cv_in_ptr->header.stamp.toSec());
+  cv::Mat position = orb_slam->TrackMonocular(cv_in_ptr->image,cv_in_ptr->header.stamp.toSec());
+  if (!position.empty()) {
+    tf::Transform transform = TransformFromMat (position);
+    static tf::TransformBroadcaster tf_broadcaster;
+    tf_broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "camera_link"));
+  }
 
-  /*cv_bridge::CvImage rendered_image_msg;
-  rendered_image_msg.header   = msg->header;
-  rendered_image_msg.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
-  rendered_image_msg.image    = orb_slam->DrawCurrentFrame(); // cv::Mat*/
   const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", orb_slam->DrawCurrentFrame()).toImageMsg();
 
   rendered_image_publisher.publish (rendered_image_msg);

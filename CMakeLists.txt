@@ -34,6 +34,7 @@ roscpp
 std_msgs
 cv_bridge
 image_transport
+tf
 )
 
 find_package(OpenCV 3.0 QUIET)
@@ -92,6 +93,7 @@ ${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/g2o/lib/libg2o.so
 
 add_executable (${PROJECT_NAME}_mono
 ros/src/MonoNode.cc
+ros/src/Node.cc
 )
 add_dependencies (${PROJECT_NAME}_mono ${PROJECT_NAME})
 
