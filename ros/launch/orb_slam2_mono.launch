@@ -4,5 +4,6 @@
           $(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt
           $(find orb_slam2_ros)/orb_slam2/config/RealSenseMono.yaml"
       output="screen">
+       <remap from="/camera/image_raw" to="/camera/rgb/image_raw" />
   </node>
 </launch>

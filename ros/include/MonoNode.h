@@ -27,8 +27,9 @@
 #include <chrono>
 
 #include <ros/ros.h>
+#include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
-
+#include <sensor_msgs/image_encodings.h>
 #include <opencv2/core/core.hpp>
 
 #include "System.h"
@@ -37,13 +38,14 @@
 class MonoNode
 {
   public:
-    MonoNode (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle);
+    MonoNode (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
     ~MonoNode ();
     void ImageCallback (const sensor_msgs::ImageConstPtr& msg);
 
   private:
     ORB_SLAM2::System *orb_slam;
-    ros::Subscriber image_subscriber;
+    image_transport::Subscriber image_subscriber;
+    image_transport::Publisher rendered_image_publisher;
 };
 
 #endif //ORBSLAM2_ROS_MONONODE_H_

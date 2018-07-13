@@ -33,6 +33,7 @@ find_package (catkin REQUIRED COMPONENTS
 roscpp
 std_msgs
 cv_bridge
+image_transport
 )
 
 find_package(OpenCV 3.0 QUIET)

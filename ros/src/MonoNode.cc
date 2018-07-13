@@ -36,8 +36,9 @@ int main(int argc, char **argv)
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::MONOCULAR);
     ros::NodeHandle node_handle;
+    image_transport::ImageTransport image_transport (node_handle);
 
-    MonoNode node (&SLAM, node_handle);
+    MonoNode node (&SLAM, node_handle, image_transport);
 
     ros::spin();
 
@@ -53,9 +54,10 @@ int main(int argc, char **argv)
 }
 
 
-MonoNode::MonoNode (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle) {
+MonoNode::MonoNode (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) {
   orb_slam = pSLAM;
-  image_subscriber = node_handle.subscribe("/camera/image_raw", 1, &MonoNode::ImageCallback, this);
+  image_subscriber = image_transport.subscribe ("/camera/image_raw", 1, &MonoNode::ImageCallback, this);
+  rendered_image_publisher = image_transport.advertise ("/orbslam2/debug_image", 1);
 }
 
 
@@ -64,13 +66,21 @@ MonoNode::~MonoNode () {
 
 
 void MonoNode::ImageCallback (const sensor_msgs::ImageConstPtr& msg) {
-  cv_bridge::CvImageConstPtr cv_ptr;
+  cv_bridge::CvImageConstPtr cv_in_ptr;
   try {
-      cv_ptr = cv_bridge::toCvShare(msg);
+      cv_in_ptr = cv_bridge::toCvShare(msg);
   } catch (cv_bridge::Exception& e) {
       ROS_ERROR("cv_bridge exception: %s", e.what());
       return;
   }
 
-  orb_slam->TrackMonocular(cv_ptr->image,cv_ptr->header.stamp.toSec());
+  orb_slam->TrackMonocular(cv_in_ptr->image,cv_in_ptr->header.stamp.toSec());
+
+  /*cv_bridge::CvImage rendered_image_msg;
+  rendered_image_msg.header   = msg->header;
+  rendered_image_msg.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
+  rendered_image_msg.image    = orb_slam->DrawCurrentFrame(); // cv::Mat*/
+  const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", orb_slam->DrawCurrentFrame()).toImageMsg();
+
+  rendered_image_publisher.publish (rendered_image_msg);
 }
