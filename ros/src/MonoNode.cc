@@ -78,7 +78,7 @@ void MonoNode::ImageCallback (const sensor_msgs::ImageConstPtr& msg) {
   if (!position.empty()) {
     tf::Transform transform = TransformFromMat (position);
     static tf::TransformBroadcaster tf_broadcaster;
-    tf_broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "camera_link"));
+    tf_broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "camera_link"));
   }
 
   const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", orb_slam->DrawCurrentFrame()).toImageMsg();

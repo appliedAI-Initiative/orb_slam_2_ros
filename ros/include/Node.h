@@ -37,6 +37,9 @@ class Node
 
   protected:
     tf::Transform TransformFromMat (cv::Mat position_mat);
+
+  private:
+    cv::Mat previous_pose_;
 };
 
 #endif //ORBSLAM2_ROS_NODE_H_
