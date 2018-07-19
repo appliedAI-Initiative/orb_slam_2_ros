@@ -55,6 +55,19 @@ ${EIGEN3_INCLUDE_DIR}
 ${catkin_INCLUDE_DIRS}
 )
 
+set(LIBS_ORBSLAM
+${OpenCV_LIBS}
+${EIGEN3_LIBS}
+${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/DBoW2/lib/libDBoW2.so
+${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/g2o/lib/libg2o.so
+)
+
+set(LIBS_ROS
+${PROJECT_SOURCE_DIR}/orb_slam2/lib/lib${PROJECT_NAME}.so
+${OpenCV_LIBS}
+${catkin_LIBRARIES}
+)
+
 catkin_package (
 )
 
@@ -85,10 +98,7 @@ orb_slam2/src/Initializer.cc
 add_dependencies (${PROJECT_NAME} g2o DBoW2)
 
 target_link_libraries(${PROJECT_NAME}
-${OpenCV_LIBS}
-${EIGEN3_LIBS}
-${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/DBoW2/lib/libDBoW2.so
-${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/g2o/lib/libg2o.so
+${LIBS_ORBSLAM}
 )
 
 add_executable (${PROJECT_NAME}_mono
@@ -98,7 +108,16 @@ ros/src/Node.cc
 add_dependencies (${PROJECT_NAME}_mono ${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME}_mono
-${PROJECT_SOURCE_DIR}/orb_slam2/lib/lib${PROJECT_NAME}.so
-${OpenCV_LIBS}
-${catkin_LIBRARIES}
+${LIBS_ROS}
+)
+
+
+add_executable (${PROJECT_NAME}_rgbd
+ros/src/RGBDNode.cc
+ros/src/Node.cc
+)
+add_dependencies (${PROJECT_NAME}_rgbd ${PROJECT_NAME})
+
+target_link_libraries(${PROJECT_NAME}_rgbd
+${LIBS_ROS}
 )
