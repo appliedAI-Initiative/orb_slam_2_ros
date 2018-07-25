@@ -1,12 +1,19 @@
 #include "Node.h"
 
 Node::Node () {
-  previous_pose_ = cv::Mat::eye(4,4, CV_32F);
+
 }
 
 
 Node::~Node () {
 
+}
+
+
+void Node::Launch (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) {
+  orb_slam_ = pSLAM;
+
+  rendered_image_publisher_ = image_transport.advertise ("/orbslam2/debug_image", 1);
 }
 
 

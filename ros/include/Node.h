@@ -27,6 +27,13 @@
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/core/core.hpp>
 
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include <sensor_msgs/image_encodings.h>
+
+#include "System.h"
+
 
 
 class Node
@@ -36,10 +43,13 @@ class Node
     ~Node ();
 
   protected:
+    void Launch (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
+
     tf::Transform TransformFromMat (cv::Mat position_mat);
+    ORB_SLAM2::System* orb_slam_;
+    image_transport::Publisher rendered_image_publisher_;
 
   private:
-    cv::Mat previous_pose_;
 };
 
 #endif //ORBSLAM2_ROS_NODE_H_
