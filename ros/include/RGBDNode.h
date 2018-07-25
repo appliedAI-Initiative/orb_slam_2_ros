@@ -49,11 +49,9 @@ class RGBDNode : public Node
 
   private:
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
-    ORB_SLAM2::System *orb_slam_;
     message_filters::Subscriber<sensor_msgs::Image> *rgb_subscriber_;
     message_filters::Subscriber<sensor_msgs::Image> *depth_subscriber_;
     message_filters::Synchronizer<sync_pol> *sync_;
-    image_transport::Publisher rendered_image_publisher_;
 };
 
 #endif //ORBSLAM2_ROS_RGBDODE_H_
