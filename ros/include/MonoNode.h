@@ -45,9 +45,7 @@ class MonoNode : public Node
     void ImageCallback (const sensor_msgs::ImageConstPtr& msg);
 
   private:
-    ORB_SLAM2::System *orb_slam;
     image_transport::Subscriber image_subscriber;
-    image_transport::Publisher rendered_image_publisher;
 };
 
 #endif //ORBSLAM2_ROS_MONONODE_H_

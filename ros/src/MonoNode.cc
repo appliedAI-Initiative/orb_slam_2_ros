@@ -55,9 +55,8 @@ int main(int argc, char **argv)
 
 
 MonoNode::MonoNode (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) {
-  orb_slam = pSLAM;
+  Launch (pSLAM, node_handle, image_transport);
   image_subscriber = image_transport.subscribe ("/camera/image_raw", 1, &MonoNode::ImageCallback, this);
-  rendered_image_publisher = image_transport.advertise ("/orbslam2/debug_image", 1);
 }
 
 
@@ -74,14 +73,14 @@ void MonoNode::ImageCallback (const sensor_msgs::ImageConstPtr& msg) {
       return;
   }
 
-  cv::Mat position = orb_slam->TrackMonocular(cv_in_ptr->image,cv_in_ptr->header.stamp.toSec());
+  cv::Mat position = orb_slam_->TrackMonocular(cv_in_ptr->image,cv_in_ptr->header.stamp.toSec());
   if (!position.empty()) {
     tf::Transform transform = TransformFromMat (position);
     static tf::TransformBroadcaster tf_broadcaster;
     tf_broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "camera_link"));
   }
 
-  const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", orb_slam->DrawCurrentFrame()).toImageMsg();
+  const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", orb_slam_->DrawCurrentFrame()).toImageMsg();
 
-  rendered_image_publisher.publish (rendered_image_msg);
+  rendered_image_publisher_.publish (rendered_image_msg);
 }
