@@ -11,29 +11,33 @@ Node::~Node () {
 
 
 tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
-  cv::Mat world_left_hand = cv::Mat::eye(4,4, CV_32F);
-  // matrix to flip signs of sinus in rotation matrix
-  const cv::Mat flip_sign = (cv::Mat_<float>(4,4) <<   1,-1,-1, 1,
-                                                      -1, 1,-1, 1,
-                                                      -1,-1, 1, 1,
-                                                      1, 1, 1, 1);
+  cv::Mat rotation(3,3,CV_32F);
+  cv::Mat translation(3,1,CV_32F);
 
-  cv::Mat translation =  (position_mat * previous_pose_.inv()).mul(flip_sign);
-  world_left_hand = world_left_hand * translation;
-  previous_pose_ =  position_mat.clone();
+  rotation = position_mat.rowRange(0,3).colRange(0,3).t();
+  translation = position_mat.rowRange(0,3).col(3);
 
-  tf::Matrix3x3 camera_rotation_right_hand (world_left_hand.at<float> (0,0), world_left_hand.at<float> (0,1), world_left_hand.at<float> (0,2),
-                                            world_left_hand.at<float> (1,0), world_left_hand.at<float> (1,1), world_left_hand.at<float> (1,2),
-                                            world_left_hand.at<float> (2,0), world_left_hand.at<float> (2,1), world_left_hand.at<float> (2,2));
-  tf::Vector3 camera_translation_right_hand (world_left_hand.at<float> (0,3), world_left_hand.at<float> (1,3), world_left_hand.at<float> (2,3));
+  tf::Matrix3x3 tf_camera_rotation (rotation.at<float> (0,0), rotation.at<float> (0,1), rotation.at<float> (0,2), //Z
+                                            rotation.at<float> (1,0), rotation.at<float> (1,1), rotation.at<float> (1,2), //Y
+                                            rotation.at<float> (2,0), rotation.at<float> (2,1), rotation.at<float> (2,2)  //X
+                                          );
 
-  //rotate 270deg about x and 270deg about x to get ENU: x forward, y left, z up
-  const tf::Matrix3x3 rotation_270_deg_xz(0, 1, 0,
-                                          0, 0, 1,
-                                          1, 0, 0);
+  tf::Vector3 tf_camera_translation (translation.at<float> (0), translation.at<float> (1), translation.at<float> (2));
 
-  tf::Matrix3x3 global_rotation_right_hand = camera_rotation_right_hand * rotation_270_deg_xz;
-  tf::Vector3 global_translation_right_hand = camera_translation_right_hand * rotation_270_deg_xz;
+  const tf::Matrix3x3 Rx (1, 0, 0,
+                          0, 0, -1,
+                          0, 1, 0);
 
-  return tf::Transform (global_rotation_right_hand, global_translation_right_hand);
+  const tf::Matrix3x3 Rz (0, -1, 0,
+                          1, 0, 0,
+                          0, 0, 1);
+
+                          tf_camera_rotation = Rx*tf_camera_rotation;
+                          tf_camera_rotation = Rz*tf_camera_rotation;
+                          tf_camera_translation = Rx*tf_camera_translation;
+                          tf_camera_translation = Rz*tf_camera_translation;
+
+  tf_camera_translation = tf_camera_rotation*tf_camera_translation;
+
+  return tf::Transform (tf_camera_rotation, tf_camera_translation);
 }
