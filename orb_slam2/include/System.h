@@ -121,6 +121,8 @@ public:
 
     cv::Mat DrawCurrentFrame ();
 
+    std::vector<MapPoint*> GetAllKeyPoints();
+
 private:
 
     // Input sensor

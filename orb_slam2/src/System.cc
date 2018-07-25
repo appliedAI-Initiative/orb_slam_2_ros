@@ -474,4 +474,8 @@ cv::Mat System::DrawCurrentFrame () {
   return mpFrameDrawer->DrawFrame();
 }
 
+std::vector<MapPoint*> System::GetAllKeyPoints() {
+  return mpMap->GetAllMapPoints();
+}
+
 } //namespace ORB_SLAM
