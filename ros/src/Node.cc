@@ -22,7 +22,7 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
   cv::Mat translation(3,1,CV_32F);
 
   rotation = position_mat.rowRange(0,3).colRange(0,3).t();
-  translation = position_mat.rowRange(0,3).col(3);
+  translation = rotation*position_mat.rowRange(0,3).col(3);
 
   tf::Matrix3x3 tf_camera_rotation (rotation.at<float> (0,0), rotation.at<float> (0,1), rotation.at<float> (0,2), //Z
                                             rotation.at<float> (1,0), rotation.at<float> (1,1), rotation.at<float> (1,2), //Y
@@ -43,8 +43,6 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
                           tf_camera_rotation = Rz*tf_camera_rotation;
                           tf_camera_translation = Rx*tf_camera_translation;
                           tf_camera_translation = Rz*tf_camera_translation;
-
-  tf_camera_translation = tf_camera_rotation*tf_camera_translation;
 
   return tf::Transform (tf_camera_rotation, tf_camera_translation);
 }
