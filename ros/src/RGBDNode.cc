@@ -39,8 +39,6 @@ int main(int argc, char **argv)
     image_transport::ImageTransport image_transport (node_handle);
 
     RGBDNode node (&SLAM, node_handle, image_transport);
-    //RGBDNode *node;
-    //node = new RGBDNode (&SLAM, node_handle, image_transport);
 
     ros::spin();
 
