@@ -21,7 +21,9 @@
 #ifndef ORBSLAM2_ROS_NODE_H_
 #define ORBSLAM2_ROS_NODE_H_
 
+#include <vector>
 #include <ros/ros.h>
+#include <ros/time.h>
 #include <image_transport/image_transport.h>
 #include <tf/transform_broadcaster.h>
 #include <cv_bridge/cv_bridge.h>
@@ -31,6 +33,7 @@
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/PointCloud2.h>
 
 #include "System.h"
 
@@ -44,12 +47,16 @@ class Node
 
   protected:
     void Launch (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
-
     tf::Transform TransformFromMat (cv::Mat position_mat);
+    void PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points);
+
     ORB_SLAM2::System* orb_slam_;
     image_transport::Publisher rendered_image_publisher_;
+    ros::Publisher map_points_publisher_;
 
   private:
+    sensor_msgs::PointCloud2 MapPointsToPointCloud (std::vector<ORB_SLAM2::MapPoint*> map_points);
+    int num_of_pointclouds_published_;
 };
 
 #endif //ORBSLAM2_ROS_NODE_H_
