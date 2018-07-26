@@ -35,6 +35,7 @@ std_msgs
 cv_bridge
 image_transport
 tf
+sensor_msgs
 )
 
 find_package(OpenCV 3.0 QUIET)
