@@ -82,5 +82,6 @@ void MonoNode::ImageCallback (const sensor_msgs::ImageConstPtr& msg) {
 
   const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", orb_slam_->DrawCurrentFrame()).toImageMsg();
 
+  PublishMapPoints (orb_slam_->GetAllMapPoints());
   rendered_image_publisher_.publish (rendered_image_msg);
 }
