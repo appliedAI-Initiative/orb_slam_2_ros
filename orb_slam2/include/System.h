@@ -121,7 +121,7 @@ public:
 
     cv::Mat DrawCurrentFrame ();
 
-    std::vector<MapPoint*> GetAllKeyPoints();
+    std::vector<MapPoint*> GetAllMapPoints();
 
 private:
 

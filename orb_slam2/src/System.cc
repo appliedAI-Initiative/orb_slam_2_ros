@@ -474,7 +474,7 @@ cv::Mat System::DrawCurrentFrame () {
   return mpFrameDrawer->DrawFrame();
 }
 
-std::vector<MapPoint*> System::GetAllKeyPoints() {
+std::vector<MapPoint*> System::GetAllMapPoints() {
   return mpMap->GetAllMapPoints();
 }
 
