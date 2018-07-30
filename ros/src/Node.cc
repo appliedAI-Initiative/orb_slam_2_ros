@@ -29,9 +29,9 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
   translation = rotation*position_mat.rowRange(0,3).col(3);
 
   tf::Matrix3x3 tf_camera_rotation (rotation.at<float> (0,0), rotation.at<float> (0,1), rotation.at<float> (0,2), //Z
-                                            rotation.at<float> (1,0), rotation.at<float> (1,1), rotation.at<float> (1,2), //Y
-                                            rotation.at<float> (2,0), rotation.at<float> (2,1), rotation.at<float> (2,2)  //X
-                                          );
+                                    rotation.at<float> (1,0), rotation.at<float> (1,1), rotation.at<float> (1,2), //Y
+                                    rotation.at<float> (2,0), rotation.at<float> (2,1), rotation.at<float> (2,2)  //X
+                                   );
 
   tf::Vector3 tf_camera_translation (translation.at<float> (0), translation.at<float> (1), translation.at<float> (2));
 
@@ -92,12 +92,14 @@ sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::Map
 
   float data_array[3];
   for (unsigned int i=0; i<cloud.width; i++) {
-  	data_array[0] = -1.0* map_points.at(i)->GetWorldPos().at<float> (2); //x. Do the transformation by just reading at the position of z instead of x
-  	data_array[1] = map_points.at(i)->GetWorldPos().at<float> (0); //y. Do the transformation by just reading at the position of x instead of y
-  	data_array[2] = -1.0* map_points.at(i)->GetWorldPos().at<float> (1); //z. Do the transformation by just reading at the position of y instead of z
-    //TODO dont hack the transformation but have central conversion function for MapPointsToPointCloud and PublishMapPoints
+    if (!map_points.at(i)->isBad()) {
+      data_array[0] = -1.0* map_points.at(i)->GetWorldPos().at<float> (2); //x. Do the transformation by just reading at the position of z instead of x
+    	data_array[1] = map_points.at(i)->GetWorldPos().at<float> (0); //y. Do the transformation by just reading at the position of x instead of y
+    	data_array[2] = -1.0* map_points.at(i)->GetWorldPos().at<float> (1); //z. Do the transformation by just reading at the position of y instead of z
+      //TODO dont hack the transformation but have a central conversion function for MapPointsToPointCloud and PublishMapPoints
 
-    memcpy(cloud_data_ptr+(i*cloud.point_step), data_array, 3*sizeof(float));
+      memcpy(cloud_data_ptr+(i*cloud.point_step), data_array, 3*sizeof(float));
+    }
   }
 
   num_of_pointclouds_published_ ++;
