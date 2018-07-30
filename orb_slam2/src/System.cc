@@ -61,13 +61,33 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
 
     mpVocabulary = new ORBVocabulary();
-    bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
+    /*bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
     if(!bVocLoad)
     {
         cerr << "Wrong path to vocabulary. " << endl;
         cerr << "Falied to open at: " << strVocFile << endl;
         exit(-1);
+    }*/
+
+    //try to load from the binary file
+    bool bVocLoad = mpVocabulary->loadFromBinFile(strVocFile+".bin");
+
+    if(!bVocLoad)
+    {
+        cerr << "Cannot find binary file for vocabulary. " << endl;
+        cerr << "Falied to open at: " << strVocFile+".bin" << endl;
+        cerr << "Trying to open the text file. " << endl;
+        bool bVocLoad2 = mpVocabulary->loadFromTextFile(strVocFile);
+        if(!bVocLoad2)
+        {
+            cerr << "Wrong path to vocabulary. " << endl;
+            cerr << "Falied to open at: " << strVocFile << endl;
+            exit(-1);
+        }
+        cerr << "Saving the vocabulary to binary for the next time to " << strVocFile+".bin" << endl;
+        mpVocabulary->saveToBinFile(strVocFile+".bin");
     }
+
     cout << "Vocabulary loaded!" << endl << endl;
 
     //Create KeyFrame Database

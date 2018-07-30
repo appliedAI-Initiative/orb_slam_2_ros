@@ -5,11 +5,11 @@
  * Description: functions for ORB descriptors
  * License: see the LICENSE.txt file
  *
- * Distance function has been modified 
+ * Distance function has been modified
  *
  */
 
- 
+
 #include <vector>
 #include <string>
 #include <sstream>
@@ -25,7 +25,7 @@ namespace DBoW2 {
 
 const int FORB::L=32;
 
-void FORB::meanValue(const std::vector<FORB::pDescriptor> &descriptors, 
+void FORB::meanValue(const std::vector<FORB::pDescriptor> &descriptors,
   FORB::TDescriptor &mean)
 {
   if(descriptors.empty())
@@ -40,12 +40,12 @@ void FORB::meanValue(const std::vector<FORB::pDescriptor> &descriptors,
   else
   {
     vector<int> sum(FORB::L * 8, 0);
-    
+
     for(size_t i = 0; i < descriptors.size(); ++i)
     {
       const cv::Mat &d = *descriptors[i];
       const unsigned char *p = d.ptr<unsigned char>();
-      
+
       for(int j = 0; j < d.cols; ++j, ++p)
       {
         if(*p & (1 << 7)) ++sum[ j*8     ];
@@ -58,10 +58,10 @@ void FORB::meanValue(const std::vector<FORB::pDescriptor> &descriptors,
         if(*p & (1))      ++sum[ j*8 + 7 ];
       }
     }
-    
+
     mean = cv::Mat::zeros(1, FORB::L, CV_8U);
     unsigned char *p = mean.ptr<unsigned char>();
-    
+
     const int N2 = (int)descriptors.size() / 2 + descriptors.size() % 2;
     for(size_t i = 0; i < sum.size(); ++i)
     {
@@ -70,14 +70,14 @@ void FORB::meanValue(const std::vector<FORB::pDescriptor> &descriptors,
         // set bit
         *p |= 1 << (7 - (i % 8));
       }
-      
+
       if(i % 8 == 7) ++p;
     }
   }
 }
 
 // --------------------------------------------------------------------------
-  
+
 int FORB::distance(const FORB::TDescriptor &a,
   const FORB::TDescriptor &b)
 {
@@ -101,42 +101,42 @@ int FORB::distance(const FORB::TDescriptor &a,
 }
 
 // --------------------------------------------------------------------------
-  
+
 std::string FORB::toString(const FORB::TDescriptor &a)
 {
   stringstream ss;
   const unsigned char *p = a.ptr<unsigned char>();
-  
+
   for(int i = 0; i < a.cols; ++i, ++p)
   {
     ss << (int)*p << " ";
   }
-  
+
   return ss.str();
 }
 
 // --------------------------------------------------------------------------
-  
+
 void FORB::fromString(FORB::TDescriptor &a, const std::string &s)
 {
   a.create(1, FORB::L, CV_8U);
   unsigned char *p = a.ptr<unsigned char>();
-  
+
   stringstream ss(s);
   for(int i = 0; i < FORB::L; ++i, ++p)
   {
     int n;
     ss >> n;
-    
-    if(!ss.fail()) 
+
+    if(!ss.fail())
       *p = (unsigned char)n;
   }
-  
+
 }
 
 // --------------------------------------------------------------------------
 
-void FORB::toMat32F(const std::vector<TDescriptor> &descriptors, 
+void FORB::toMat32F(const std::vector<TDescriptor> &descriptors,
   cv::Mat &mat)
 {
   if(descriptors.empty())
@@ -144,17 +144,17 @@ void FORB::toMat32F(const std::vector<TDescriptor> &descriptors,
     mat.release();
     return;
   }
-  
+
   const size_t N = descriptors.size();
-  
+
   mat.create(N, FORB::L*8, CV_32F);
   float *p = mat.ptr<float>();
-  
+
   for(size_t i = 0; i < N; ++i)
   {
     const int C = descriptors[i].cols;
     const unsigned char *desc = descriptors[i].ptr<unsigned char>();
-    
+
     for(int j = 0; j < C; ++j, p += 8)
     {
       p[0] = (desc[j] & (1 << 7) ? 1 : 0);
@@ -166,28 +166,42 @@ void FORB::toMat32F(const std::vector<TDescriptor> &descriptors,
       p[6] = (desc[j] & (1 << 1) ? 1 : 0);
       p[7] = desc[j] & (1);
     }
-  } 
+  }
 }
 
 // --------------------------------------------------------------------------
 
-void FORB::toMat8U(const std::vector<TDescriptor> &descriptors, 
+void FORB::toMat8U(const std::vector<TDescriptor> &descriptors,
   cv::Mat &mat)
 {
   mat.create(descriptors.size(), 32, CV_8U);
-  
+
   unsigned char *p = mat.ptr<unsigned char>();
-  
+
   for(size_t i = 0; i < descriptors.size(); ++i, p += 32)
   {
     const unsigned char *d = descriptors[i].ptr<unsigned char>();
     std::copy(d, d+32, p);
   }
-  
+
+}
+
+// --------------------------------------------------------------------------
+
+void FORB::toArray8U(const TDescriptor &descriptors, unsigned char * array)
+{
+  const unsigned char *d = descriptors.ptr<unsigned char>();
+  std::copy(d, d+FORB::L, array);
+}
+
+// --------------------------------------------------------------------------
+
+void FORB::fromArray8U(TDescriptor &descriptors, unsigned char * array)
+{
+  unsigned char *d = descriptors.ptr<unsigned char>();
+  std::copy(array, array+FORB::L, d);
 }
 
 // --------------------------------------------------------------------------
 
 } // namespace DBoW2
-
-
