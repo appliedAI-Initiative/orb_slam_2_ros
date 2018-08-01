@@ -2,22 +2,23 @@
 
 #include <iostream>
 
-Node::Node () {
+Node::Node (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) {
+  num_of_pointclouds_published_ = 0;
+  name_of_node_ = ros::this_node::getName();
+  orb_slam_ = pSLAM;
+  node_handle_ = node_handle;
 
+  InitParameters ();
+
+  rendered_image_publisher_ = image_transport.advertise (name_of_node_+"/debug_image", 1);
+  if (publish_pointcloud_param_) {
+    map_points_publisher_ = node_handle_.advertise<sensor_msgs::PointCloud2> (name_of_node_+"/map_points", 1);
+  }
 }
 
 
 Node::~Node () {
 
-}
-
-
-void Node::Launch (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) {
-  num_of_pointclouds_published_ = 0;
-  orb_slam_ = pSLAM;
-
-  rendered_image_publisher_ = image_transport.advertise ("/orbslam2/debug_image", 1);
-  map_points_publisher_ = node_handle.advertise<sensor_msgs::PointCloud2> ("/orbslam2/map_points", 1);
 }
 
 
@@ -68,7 +69,7 @@ sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::Map
   const int num_channels = 3; // x y z
 
   cloud.header.stamp = ros::Time::now(); //WARNING: TODO: Timestamp needs to come from the curent image not current time otherwise it lags behind some msecs
-  cloud.header.frame_id = "map"; //TODO: read from config
+  cloud.header.frame_id = map_frame_id_param_;
   cloud.header.seq = num_of_pointclouds_published_;
   cloud.height = 1;
   cloud.width = map_points.size();
@@ -105,4 +106,16 @@ sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::Map
   num_of_pointclouds_published_ ++;
 
   return cloud;
+}
+
+void Node::InitParameters () {
+  node_handle_.param(name_of_node_+"/publish_pointcloud", publish_pointcloud_param_, true);
+  node_handle_.param(name_of_node_+"/localize_only", localize_only_param_, false);
+  node_handle_.param<std::string>(name_of_node_+"/pointcloud_frame_id", map_frame_id_param_, "map");
+  node_handle_.param<std::string>(name_of_node_+"/camera_frame_id", camera_frame_id_param_, "camera_link");
+}
+
+void Node::UpdateParameters () {
+  node_handle_.param(name_of_node_+"/localize_only", localize_only_param_, false);
+  orb_slam_->EnableLocalizationOnly (localize_only_param_);
 }

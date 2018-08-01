@@ -58,7 +58,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
 
     //Load ORB Vocabulary
-    cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
+    cout << endl << "Loading ORB Vocabulary." << endl;
 
     mpVocabulary = new ORBVocabulary();
 
@@ -69,7 +69,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     {
         cerr << "Cannot find binary file for vocabulary. " << endl;
         cerr << "Falied to open at: " << strVocFile+".bin" << endl;
-        cerr << "Trying to open the text file. " << endl;
+        cerr << "Trying to open the text file. This could take a while..." << endl;
         bool bVocLoad2 = mpVocabulary->loadFromTextFile(strVocFile);
         if(!bVocLoad2)
         {
@@ -114,6 +114,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     mpLoopCloser->SetTracker(mpTracker);
     mpLoopCloser->SetLocalMapper(mpLocalMapper);
+
+    currently_localizing_only_ = false;
 }
 
 cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp)
@@ -268,18 +270,6 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
     mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;
 
     return Tcw;
-}
-
-void System::ActivateLocalizationMode()
-{
-    unique_lock<mutex> lock(mMutexMode);
-    mbActivateLocalizationMode = true;
-}
-
-void System::DeactivateLocalizationMode()
-{
-    unique_lock<mutex> lock(mMutexMode);
-    mbDeactivateLocalizationMode = true;
 }
 
 bool System::MapChanged()
@@ -489,6 +479,29 @@ cv::Mat System::DrawCurrentFrame () {
 
 std::vector<MapPoint*> System::GetAllMapPoints() {
   return mpMap->GetAllMapPoints();
+}
+
+void System::ActivateLocalizationMode()
+{
+    unique_lock<mutex> lock(mMutexMode);
+    mbActivateLocalizationMode = true;
+}
+
+void System::DeactivateLocalizationMode()
+{
+    unique_lock<mutex> lock(mMutexMode);
+    mbDeactivateLocalizationMode = true;
+}
+
+void System::EnableLocalizationOnly (bool localize_only) {
+  if (localize_only != currently_localizing_only_) {
+    currently_localizing_only_ = localize_only;
+    if (localize_only) {
+      ActivateLocalizationMode();
+    } else {
+      DeactivateLocalizationMode();
+    }
+  }
 }
 
 } //namespace ORB_SLAM

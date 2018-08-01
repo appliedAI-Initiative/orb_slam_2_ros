@@ -42,21 +42,29 @@
 class Node
 {
   public:
-    Node ();
+    Node (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
     ~Node ();
 
   protected:
-    void Launch (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
     tf::Transform TransformFromMat (cv::Mat position_mat);
     void PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points);
-
+    void UpdateParameters ();
     ORB_SLAM2::System* orb_slam_;
     image_transport::Publisher rendered_image_publisher_;
     ros::Publisher map_points_publisher_;
 
+    bool publish_pointcloud_param_;
+    bool localize_only_param_;
+    std::string map_frame_id_param_;
+    std::string camera_frame_id_param_;
+
   private:
     sensor_msgs::PointCloud2 MapPointsToPointCloud (std::vector<ORB_SLAM2::MapPoint*> map_points);
+    void InitParameters ();
+
+    std::string name_of_node_;
     int num_of_pointclouds_published_;
+    ros::NodeHandle node_handle_;
 };
 
 #endif //ORBSLAM2_ROS_NODE_H_

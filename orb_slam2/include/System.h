@@ -74,11 +74,6 @@ public:
     // Returns the camera pose (empty if tracking fails).
     cv::Mat TrackMonocular(const cv::Mat &im, const double &timestamp);
 
-    // This stops local mapping thread (map building) and performs only camera tracking.
-    void ActivateLocalizationMode();
-    // This resumes local mapping thread and performs SLAM again.
-    void DeactivateLocalizationMode();
-
     // Returns true if there have been a big map change (loop closure, global BA)
     // since last call to this function
     bool MapChanged();
@@ -109,6 +104,9 @@ public:
     // See format details at: http://www.cvlibs.net/datasets/kitti/eval_odometry.php
     void SaveTrajectoryKITTI(const string &filename);
 
+    //Checks the current mode (mapping or localization) and changes the mode if requested
+    void EnableLocalizationOnly (bool localize_only);
+
     // TODO: Save/Load functions
     // SaveMap(const string &filename);
     // LoadMap(const string &filename);
@@ -124,6 +122,13 @@ public:
     std::vector<MapPoint*> GetAllMapPoints();
 
 private:
+    // This stops local mapping thread (map building) and performs only camera tracking.
+    void ActivateLocalizationMode();
+
+    // This resumes local mapping thread and performs SLAM again.
+    void DeactivateLocalizationMode();
+
+    bool currently_localizing_only_;
 
     // Input sensor
     eSensor mSensor;

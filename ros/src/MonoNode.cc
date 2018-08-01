@@ -54,8 +54,7 @@ int main(int argc, char **argv)
 }
 
 
-MonoNode::MonoNode (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) {
-  Launch (pSLAM, node_handle, image_transport);
+MonoNode::MonoNode (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) : Node (pSLAM, node_handle, image_transport) {
   image_subscriber = image_transport.subscribe ("/camera/image_raw", 1, &MonoNode::ImageCallback, this);
 }
 
@@ -77,11 +76,16 @@ void MonoNode::ImageCallback (const sensor_msgs::ImageConstPtr& msg) {
   if (!position.empty()) {
     tf::Transform transform = TransformFromMat (position);
     static tf::TransformBroadcaster tf_broadcaster;
-    tf_broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "camera_link"));
+    tf_broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), map_frame_id_param_, camera_frame_id_param_));
   }
 
   const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", orb_slam_->DrawCurrentFrame()).toImageMsg();
 
-  PublishMapPoints (orb_slam_->GetAllMapPoints());
+  if (publish_pointcloud_param_) {
+    PublishMapPoints (orb_slam_->GetAllMapPoints());
+  }
+
+  UpdateParameters ();
+
   rendered_image_publisher_.publish (rendered_image_msg);
 }
