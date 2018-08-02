@@ -81,8 +81,6 @@ public:
     // Reset the system (clear map)
     void Reset();
 
-    void SetMinimumKeyFrames (int min_num_kf) {mpTracker->SetMinimumKeyFrames(min_num_kf);}
-
     // All threads will be requested to finish.
     // It waits until all threads have finished.
     // This function must be called before saving the trajectory.
@@ -112,6 +110,8 @@ public:
     // TODO: Save/Load functions
     // SaveMap(const string &filename);
     // LoadMap(const string &filename);
+
+    void SetMinimumKeyFrames (int min_num_kf);
 
     // Information from most recent processed frame
     // You can call this right after TrackMonocular (or stereo or RGBD)

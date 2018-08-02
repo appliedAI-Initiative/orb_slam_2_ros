@@ -455,6 +455,10 @@ void System::SaveTrajectoryKITTI(const string &filename)
     cout << endl << "trajectory saved!" << endl;
 }
 
+void System::SetMinimumKeyFrames (int min_num_kf) {
+  mpTracker->SetMinimumKeyFrames(min_num_kf);
+}
+
 int System::GetTrackingState()
 {
     unique_lock<mutex> lock(mMutexState);
