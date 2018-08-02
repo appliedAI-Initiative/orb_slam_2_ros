@@ -29,9 +29,9 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
   rotation = position_mat.rowRange(0,3).colRange(0,3).t();
   translation = rotation*position_mat.rowRange(0,3).col(3);
 
-  tf::Matrix3x3 tf_camera_rotation (rotation.at<float> (0,0), rotation.at<float> (0,1), rotation.at<float> (0,2), //Z
-                                    rotation.at<float> (1,0), rotation.at<float> (1,1), rotation.at<float> (1,2), //Y
-                                    rotation.at<float> (2,0), rotation.at<float> (2,1), rotation.at<float> (2,2)  //X
+  tf::Matrix3x3 tf_camera_rotation (rotation.at<float> (0,0), rotation.at<float> (0,1), rotation.at<float> (0,2),
+                                    rotation.at<float> (1,0), rotation.at<float> (1,1), rotation.at<float> (1,2),
+                                    rotation.at<float> (2,0), rotation.at<float> (2,1), rotation.at<float> (2,2)
                                    );
 
   tf::Vector3 tf_camera_translation (translation.at<float> (0), translation.at<float> (1), translation.at<float> (2));
@@ -44,10 +44,21 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
                           1, 0, 0,
                           0, 0, 1);
 
+  const tf::Matrix3x3 invX (-1, 0, 0,
+                            0, 1, 0,
+                            0, 0, 1);
+
+  const tf::Matrix3x3 invYZ (1, 0, 0,
+                            0, -1, 0,
+                            0, 0, -1);
+
   tf_camera_rotation = Rx*tf_camera_rotation;
   tf_camera_rotation = Rz*tf_camera_rotation;
   tf_camera_translation = Rx*tf_camera_translation;
   tf_camera_translation = Rz*tf_camera_translation;
+
+  tf_camera_rotation = invYZ*tf_camera_rotation;
+  tf_camera_translation = invX*tf_camera_translation;
 
   return tf::Transform (tf_camera_rotation, tf_camera_translation);
 }
@@ -94,9 +105,12 @@ sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::Map
   float data_array[3];
   for (unsigned int i=0; i<cloud.width; i++) {
     if (!map_points.at(i)->isBad()) {
-      data_array[0] = -1.0* map_points.at(i)->GetWorldPos().at<float> (2); //x. Do the transformation by just reading at the position of z instead of x
+      /*data_array[0] = -1.0* map_points.at(i)->GetWorldPos().at<float> (2); //x. Do the transformation by just reading at the position of z instead of x
     	data_array[1] = map_points.at(i)->GetWorldPos().at<float> (0); //y. Do the transformation by just reading at the position of x instead of y
-    	data_array[2] = -1.0* map_points.at(i)->GetWorldPos().at<float> (1); //z. Do the transformation by just reading at the position of y instead of z
+    	data_array[2] = -1.0* map_points.at(i)->GetWorldPos().at<float> (1); //z. Do the transformation by just reading at the position of y instead of z*/
+      data_array[0] = map_points.at(i)->GetWorldPos().at<float> (2); //x. Do the transformation by just reading at the position of z instead of x
+      data_array[1] = -1.0* map_points.at(i)->GetWorldPos().at<float> (0); //y. Do the transformation by just reading at the position of x instead of y
+      data_array[2] = -1.0* map_points.at(i)->GetWorldPos().at<float> (1); //z. Do the transformation by just reading at the position of y instead of z
       //TODO dont hack the transformation but have a central conversion function for MapPointsToPointCloud and PublishMapPoints
 
       memcpy(cloud_data_ptr+(i*cloud.point_step), data_array, 3*sizeof(float));
@@ -108,6 +122,7 @@ sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::Map
   return cloud;
 }
 
+
 void Node::InitParameters () {
   node_handle_.param(name_of_node_+"/publish_pointcloud", publish_pointcloud_param_, true);
   node_handle_.param(name_of_node_+"/localize_only", localize_only_param_, false);
@@ -117,6 +132,7 @@ void Node::InitParameters () {
   node_handle_.param(name_of_node_+"/min_num_kf_in_map", minimum_num_of_kf_in_map_param_, 5);
   orb_slam_->SetMinimumKeyFrames (minimum_num_of_kf_in_map_param_);
 }
+
 
 void Node::UpdateParameters () {
   node_handle_.param(name_of_node_+"/localize_only", localize_only_param_, false);
