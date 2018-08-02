@@ -111,11 +111,23 @@ sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::Map
 void Node::InitParameters () {
   node_handle_.param(name_of_node_+"/publish_pointcloud", publish_pointcloud_param_, true);
   node_handle_.param(name_of_node_+"/localize_only", localize_only_param_, false);
+  node_handle_.param(name_of_node_+"/reset_map", reset_map_param_, false);
   node_handle_.param<std::string>(name_of_node_+"/pointcloud_frame_id", map_frame_id_param_, "map");
   node_handle_.param<std::string>(name_of_node_+"/camera_frame_id", camera_frame_id_param_, "camera_link");
+  node_handle_.param<std::string>(name_of_node_+"/min_num_kf_in_map", minimum_num_of_kf_in_map_param_, 5);
+  orb_slam_->SetMinimumKeyFrames (minimum_num_of_kf_in_map_param_);
 }
 
 void Node::UpdateParameters () {
   node_handle_.param(name_of_node_+"/localize_only", localize_only_param_, false);
   orb_slam_->EnableLocalizationOnly (localize_only_param_);
+
+  node_handle_.param(name_of_node_+"/reset_map", reset_map_param_, false);
+  if (reset_map_param_) {
+    orb_slam_->Reset();
+    node_handle_.setParam (reset_map_param_, false);
+  }
+
+  node_handle_.param<std::string>(name_of_node_+"/min_num_kf_in_map", minimum_num_of_kf_in_map_param_, 5);
+  orb_slam_->SetMinimumKeyFrames (minimum_num_of_kf_in_map_param_);
 }

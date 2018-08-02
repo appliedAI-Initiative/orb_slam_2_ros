@@ -55,8 +55,10 @@ class Node
 
     bool publish_pointcloud_param_;
     bool localize_only_param_;
+    bool reset_map_param_;
     std::string map_frame_id_param_;
     std::string camera_frame_id_param_;
+    int minimum_num_of_kf_in_map_param_;
 
   private:
     sensor_msgs::PointCloud2 MapPointsToPointCloud (std::vector<ORB_SLAM2::MapPoint*> map_points);
