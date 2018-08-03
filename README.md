@@ -13,7 +13,7 @@ The original implementation can be found [here](https://github.com/raulmur/ORB_S
 [DBoW2 Place Recognizer] Dorian Gálvez-López and Juan D. Tardós. **Bags of Binary Words for Fast Place Recognition in Image Sequences**. *IEEE Transactions on Robotics,* vol. 28, no. 5, pp.  1188-1197, 2012. **[PDF](http://doriangalvez.com/php/dl.php?dlp=GalvezTRO12.pdf)**
 
 # 1. License
-ORB-SLAM2 is released under a [GPLv3 license](https://github.com/raulmur/ORB_SLAM2/blob/master/License-gpl.txt). For a list of all code/library dependencies (and associated licenses), please see [Dependencies.md](https://github.com/raulmur/ORB_SLAM2/blob/master/Dependencies.md). /////adjust link
+ORB-SLAM2 is released under a [GPLv3 license](https://github.com/aaide/ORB_SLAM2_ROS/License-gpl.txt). For a list of all code/library dependencies (and associated licenses), please see [Dependencies.md](https://github.com/aaide/ORB_SLAM2_ROS/Dependencies.md).
 
 For a closed-source version of ORB-SLAM2 for commercial purposes, please contact the authors: orbslam (at) unizar (dot) es.
 
@@ -65,7 +65,7 @@ This ROS node requires catkin_make_isolated or catkin build to build.
 ## Getting the code
 Clone the repository into your catkin workspace:
 ```
-git clone https://github.com/raulmur/ORB_SLAM2.git ORB_SLAM2 /////adjust link
+git clone https://github.com/aaide/ORB_SLAM2_ROS.git
 ```
 ## Building
 To build the node run
