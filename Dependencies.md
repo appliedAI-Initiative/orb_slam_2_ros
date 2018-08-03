@@ -1,10 +1,10 @@
 ##List of Known Dependencies
-###ORB-SLAM2 version 1.0
+###ORB-SLAM2 ROS node version 1.0
 
 In this document we list all the pieces of code included  by ORB-SLAM2 and linked libraries which are not property of the authors of ORB-SLAM2.
 
 
-#####Code in **src** and **include** folders
+#####Code in **orb_slam2** **src** and **include** folders
 
 * *ORBextractor.cc*.
 This is a modified version of orb.cpp of OpenCV library. The original code is BSD licensed.
@@ -25,7 +25,7 @@ This is a modified version of [DBoW2](https://github.com/dorian3d/DBoW2) and [DL
 * All code in **g2o** folder.
 This is a modified version of [g2o](https://github.com/RainerKuemmerle/g2o). All files included are BSD licensed.
 
-#####Library dependencies 
+#####Library dependencies
 
 * **OpenCV**.
 BSD license.
@@ -33,5 +33,5 @@ BSD license.
 * **Eigen3**.
 For versions greater than 3.1.1 is MPL2, earlier versions are LGPLv3.
 
-* **ROS (Optional, only if you build Examples/ROS)**.
+* **ROS**.
 BSD license. In the manifest.xml the only declared package dependencies are roscpp, tf, sensor_msgs, image_transport, cv_bridge, which are all BSD licensed.
