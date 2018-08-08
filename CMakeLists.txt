@@ -112,6 +112,15 @@ target_link_libraries(${PROJECT_NAME}_mono
 ${LIBS_ROS}
 )
 
+add_executable (${PROJECT_NAME}_stereo
+ros/src/StereoNode.cc
+ros/src/Node.cc
+)
+add_dependencies (${PROJECT_NAME}_stereo ${PROJECT_NAME})
+
+target_link_libraries(${PROJECT_NAME}_stereo
+${LIBS_ROS}
+)
 
 add_executable (${PROJECT_NAME}_rgbd
 ros/src/RGBDNode.cc
