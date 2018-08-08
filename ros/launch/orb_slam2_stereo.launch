@@ -1,0 +1,17 @@
+<launch>
+  <node name="orb_slam2_stereo" pkg="orb_slam2_ros"
+      type="orb_slam2_ros_stereo" args="
+          $(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt
+          $(find orb_slam2_ros)/orb_slam2/config/vimba_stereo.yaml"
+      output="screen">
+       <remap from="image_left/image_color_rect" to="/cam_front/left/image_rect_color" />
+       <remap from="image_right/image_color_rect" to="/cam_front/right/image_rect_color" />
+
+       <param name="publish_pointcloud" type="bool" value="true" />
+       <param name="localize_only" type="bool" value="false" />
+       <param name="reset_map" type="bool" value="false" />
+       <param name="pointcloud_frame_id" type="string" value="map" />
+       <param name="camera_frame_id" type="string" value="camera_link" />
+       <param name="min_num_kf_in_map" type="int" value="5" />
+  </node>
+</launch>
