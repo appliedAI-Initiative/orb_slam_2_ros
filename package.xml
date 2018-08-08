@@ -2,7 +2,7 @@
 <package>
   <name>orb_slam2_ros</name>
   <version>0.0.1</version>
-  <description>ORB SLAM2</description>
+  <description>ORB SLAM2 ros implementation.</description>
 
   <maintainer email="post@lennarthaller.de">Lennart Haller</maintainer>
 
