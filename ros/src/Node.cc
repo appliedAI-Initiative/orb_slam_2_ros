@@ -3,7 +3,6 @@
 #include <iostream>
 
 Node::Node (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) {
-  num_of_pointclouds_published_ = 0;
   name_of_node_ = ros::this_node::getName();
   orb_slam_ = pSLAM;
   node_handle_ = node_handle;
@@ -19,6 +18,45 @@ Node::Node (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transp
 
 Node::~Node () {
 
+}
+
+
+void Node::Update () {
+  cv::Mat position = orb_slam_->GetCurrentPosition();
+
+  if (!position.empty()) {
+    PublishPositionAsTransform (position);
+  }
+
+  PublishRenderedImage (orb_slam_->DrawCurrentFrame());
+
+  if (publish_pointcloud_param_) {
+    PublishMapPoints (orb_slam_->GetAllMapPoints());
+  }
+
+  UpdateParameters ();
+}
+
+
+void Node::PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points) {
+  sensor_msgs::PointCloud2 cloud = MapPointsToPointCloud (map_points);
+  map_points_publisher_.publish (cloud);
+}
+
+
+void Node::PublishPositionAsTransform (cv::Mat position) {
+  tf::Transform transform = TransformFromMat (position);
+  static tf::TransformBroadcaster tf_broadcaster;
+  tf_broadcaster.sendTransform(tf::StampedTransform(transform, current_frame_time_, map_frame_id_param_, camera_frame_id_param_));
+}
+
+
+void Node::PublishRenderedImage (cv::Mat image) {
+  std_msgs::Header header;
+  header.stamp = current_frame_time_;
+  header.frame_id = map_frame_id_param_;
+  const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(header, "bgr8", image).toImageMsg();
+  rendered_image_publisher_.publish(rendered_image_msg);
 }
 
 
@@ -64,13 +102,7 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
 }
 
 
-void Node::PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points) {
-  sensor_msgs::PointCloud2 cloud = MapPointsToPointCloud (map_points);
-  map_points_publisher_.publish (cloud);
-}
-
 sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::MapPoint*> map_points) {
-
   if (map_points.size() == 0) {
     std::cout << "Map point vector is empty!" << std::endl;
   }
@@ -79,9 +111,8 @@ sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::Map
 
   const int num_channels = 3; // x y z
 
-  cloud.header.stamp = ros::Time::now(); //WARNING: TODO: Timestamp needs to come from the curent image not current time otherwise it lags behind some msecs
+  cloud.header.stamp = current_frame_time_;
   cloud.header.frame_id = map_frame_id_param_;
-  cloud.header.seq = num_of_pointclouds_published_;
   cloud.height = 1;
   cloud.width = map_points.size();
   cloud.is_bigendian = false;
@@ -108,13 +139,11 @@ sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::Map
       data_array[0] = map_points.at(i)->GetWorldPos().at<float> (2); //x. Do the transformation by just reading at the position of z instead of x
       data_array[1] = -1.0* map_points.at(i)->GetWorldPos().at<float> (0); //y. Do the transformation by just reading at the position of x instead of y
       data_array[2] = -1.0* map_points.at(i)->GetWorldPos().at<float> (1); //z. Do the transformation by just reading at the position of y instead of z
-      //TODO dont hack the transformation but have a central conversion function for MapPointsToPointCloud and PublishMapPoints
+      //TODO dont hack the transformation but have a central conversion function for MapPointsToPointCloud and TransformFromMat
 
       memcpy(cloud_data_ptr+(i*cloud.point_step), data_array, 3*sizeof(float));
     }
   }
-
-  num_of_pointclouds_published_ ++;
 
   return cloud;
 }

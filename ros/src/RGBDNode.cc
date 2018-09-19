@@ -1,24 +1,3 @@
-/**
-* This file is part of ORB-SLAM2.
-*
-* Copyright (C) 2014-2016 Raúl Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
-* For more information see <https://github.com/raulmur/ORB_SLAM2>
-*
-* ORB-SLAM2 is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* ORB-SLAM2 is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
-*/
-
-
 #include "RGBDNode.h"
 
 int main(int argc, char **argv)
@@ -88,21 +67,9 @@ void RGBDNode::ImageCallback (const sensor_msgs::ImageConstPtr& msgRGB, const se
       return;
   }
 
-  cv::Mat position = orb_slam_->TrackRGBD(cv_ptrRGB->image,cv_ptrD->image,cv_ptrRGB->header.stamp.toSec());
+  current_frame_time_ = msgRGB->header.stamp;
 
-  if (!position.empty()) {
-    tf::Transform transform = TransformFromMat (position);
-    static tf::TransformBroadcaster tf_broadcaster;
-    tf_broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), map_frame_id_param_, camera_frame_id_param_));
-  }
+  orb_slam_->TrackRGBD(cv_ptrRGB->image,cv_ptrD->image,cv_ptrRGB->header.stamp.toSec());
 
-  const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", orb_slam_->DrawCurrentFrame()).toImageMsg();
-
-  if (publish_pointcloud_param_) {
-      PublishMapPoints (orb_slam_->GetAllMapPoints());
-  }
-
-  UpdateParameters ();
-  
-  rendered_image_publisher_.publish (rendered_image_msg);
+  Update ();
 }
