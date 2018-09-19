@@ -1,12 +1,6 @@
 %YAML:1.0
 
-#--------------------------------------------------------------------------------------------
-# Camera Parameters. Adjust them!
-#--------------------------------------------------------------------------------------------
-
 # Camera calibration and distortion parameters (OpenCV)
-
-# see https://www.vision.caltech.edu/bouguetj/calib_doc/htmls/parameters.html
 
 Camera.fx: 632.7927856445312
 Camera.fy: 626.8605346679688

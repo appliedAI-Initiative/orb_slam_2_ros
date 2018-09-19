@@ -1,7 +1,5 @@
 %YAML:1.0
 
-# Camera Parameters. Adjust them!
-
 # Camera calibration parameters (OpenCV)
 Camera.fx: 632.7927
 Camera.fy: 626.8605
