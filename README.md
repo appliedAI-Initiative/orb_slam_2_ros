@@ -70,7 +70,7 @@ This ROS node requires catkin_make_isolated or catkin build to build.
 ## Getting the code
 Clone the repository into your catkin workspace:
 ```
-git clone https://github.com/aaide/ORB_SLAM2_ROS.git
+git clone https://github.com/appliedAI-Initiative/orb_slam_2_ros.git
 ```
 ## Building
 To build the node run
