@@ -49,16 +49,21 @@ if you use ORB-SLAM2 (Stereo or RGB-D) in an academic work, please cite:
      }
 
 # 2. Prerequisites
-We have tested the library in **Ubuntu 16.04** with **ROS Kinetic**. A powerful computer (e.g. i7) will ensure real-time performance and provide more stable and accurate results.
+We have tested the library in **Ubuntu 16.04** with **ROS Kinetic** and **Ubuntu 18.04** with **ROS Melodic**. A powerful computer (e.g. i7) will ensure real-time performance and provide more stable and accurate results.
 
 ## C++11
 We use the new thread and chrono functionalities of C++11.
 
 ## OpenCV
-We use [OpenCV](http://opencv.org) to manipulate images and features. Dowload and install instructions can be found at: http://opencv.org. **Required at leat 2.4.3. Tested with OpenCV 2.4.11 and OpenCV 3.2**.
+We use [OpenCV](http://opencv.org) to manipulate images and features. Download and install instructions can be found at: http://opencv.org. **Required at least 2.4.3. Tested with OpenCV 2.4.11 and OpenCV 3.2**.
 
 ## Eigen3
-Required by g2o (see below). Download and install instructions can be found at: http://eigen.tuxfamily.org. **Required at least 3.1.0**.
+Required by g2o (see below). Download and install instructions can be found at: http://eigen.tuxfamily.org.
+Otherwise Eigen can be installed as a binary with:
+```
+sudo apt install libeigen3-dev
+```
+**Required at least 3.1.0**.
 
 ## DBoW2 and g2o (Included in Thirdparty folder)
 We use modified versions of the [DBoW2](https://github.com/dorian3d/DBoW2) library to perform place recognition and [g2o](https://github.com/RainerKuemmerle/g2o) library to perform non-linear optimizations. Both modified libraries (which are BSD) are included in the *Thirdparty* folder.
