@@ -27,6 +27,7 @@
 
 #include"FrameDrawer.h"
 #include"Map.h"
+#include"DenseMap.h"
 #include"LocalMapping.h"
 #include"LoopClosing.h"
 #include"Frame.h"
@@ -43,6 +44,7 @@ namespace ORB_SLAM2
 
 class FrameDrawer;
 class Map;
+class DenseMap;
 class LocalMapping;
 class LoopClosing;
 class System;
@@ -178,6 +180,7 @@ protected:
 
     //Map
     Map* mpMap;
+    DenseMap* dense_map_;
 
     //Calibration matrix
     cv::Mat mK;

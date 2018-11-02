@@ -43,10 +43,10 @@ using namespace std;
 namespace ORB_SLAM2
 {
 
-Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer, Map *pMap, KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor):
+Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer, Map *pMap, DenseMap* dense_map, KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor):
     mState(NO_IMAGES_YET), mSensor(sensor), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
     mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer*>(NULL)), mpSystem(pSys),
-    mpFrameDrawer(pFrameDrawer), mpMap(pMap), mnLastRelocFrameId(0), mnMinimumKeyFrames(5)
+    mpFrameDrawer(pFrameDrawer), mpMap(pMap), dense_map_ (dense_map), mnLastRelocFrameId(0), mnMinimumKeyFrames(5)
 {
     // Load camera parameters from settings file
 
@@ -202,14 +202,15 @@ cv::Mat Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRe
 cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp)
 {
     mImGray = imRGB;
-    cv::Mat imDepth = imD;
+    mCurrentRGBImg = imRGB
+    mCurrentDepthImg = imD;
 
     if(mImGray.channels()==3)
     {
-        if(mbRGB)
-            cvtColor(mImGray,mImGray,CV_RGB2GRAY);
-        else
-            cvtColor(mImGray,mImGray,CV_BGR2GRAY);
+        if(!mbRGB) {
+          cvtColor(mCurrentRGBImg,mCurrentRGBImg,CV_BGR2RGB);
+        }
+        cvtColor(mImGray,mCurrentRGBImg,CV_RGB2GRAY);
     }
     else if(mImGray.channels()==4)
     {
@@ -219,10 +220,10 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
             cvtColor(mImGray,mImGray,CV_BGRA2GRAY);
     }
 
-    if((fabs(mDepthMapFactor-1.0f)>1e-5) || imDepth.type()!=CV_32F)
-        imDepth.convertTo(imDepth,CV_32F,mDepthMapFactor);
+    if((fabs(mDepthMapFactor-1.0f)>1e-5) || mCurrentDepthImg.type()!=CV_32F)
+        mCurrentDepthImg.convertTo(mCurrentDepthImg,CV_32F,mDepthMapFactor);
 
-    mCurrentFrame = Frame(mImGray,imDepth,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
+    mCurrentFrame = Frame(mImGray,mCurrentDepthImg,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
 
     Track();
 
@@ -1128,6 +1129,7 @@ void Tracking::CreateNewKeyFrame()
     }
 
     mpLocalMapper->InsertKeyFrame(pKF);
+    dense_map_->AddFrame (pKF->GetPose(), mCurrentRGBImg, mCurrentDepthImg);
 
     mpLocalMapper->SetNotStop(false);
 
