@@ -202,7 +202,7 @@ cv::Mat Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRe
 cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const double &timestamp)
 {
     mImGray = imRGB;
-    mCurrentRGBImg = imRGB
+    mCurrentRGBImg = imRGB;
     mCurrentDepthImg = imD;
 
     if(mImGray.channels()==3)
@@ -1129,7 +1129,7 @@ void Tracking::CreateNewKeyFrame()
     }
 
     mpLocalMapper->InsertKeyFrame(pKF);
-    dense_map_->AddFrame (pKF->GetPose(), mCurrentRGBImg, mCurrentDepthImg);
+    dense_map_->AddFrame (pKF->mnFrameId, pKF->GetPose(), mCurrentRGBImg, mCurrentDepthImg);
 
     mpLocalMapper->SetNotStop(false);
 

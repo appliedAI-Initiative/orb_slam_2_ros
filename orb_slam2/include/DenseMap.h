@@ -33,15 +33,27 @@ namespace ORB_SLAM2
 {
   public:
     DenseMap ();
-    DenseMap ();
-    void AddFrame (unsigned long int frame_id, cv::Mat &position, cv::Mat &rgb_img, cv::Mat &depth_img);
+    ~DenseMap ();
+    void AddFrame (const unsigned long int frame_id, const cv::Mat &position, const cv::Mat &rgb_img, const cv::Mat &depth_img);
     bool IsNew () {return is_new_;}
-    void GetMap (const cv::Mat &rgb_map, const cv::Mat &depth_map);
+    void GetMap (cv::Mat &rgb_map, cv::Mat &depth_map);
     void UpdateFramePosition (unsigned long int frame_id, cv::Mat &position);
 
   private:
+
+      struct MapImageEntry {
+        MapImageEntry ();
+        MapImageEntry (cv::Mat rgb, cv::Mat depth, cv::Mat pos)
+        : rgb_img(rgb), depth_img (depth), position (pos) {}
+
+        cv::Mat rgb_img;
+        cv::Mat depth_img;
+        cv::Mat position;
+      };
+
     void FitFrame (unsigned long int frame_id);
     bool is_new_;
+    bool create_dense_map_;
     std::map <unsigned long int, MapImageEntry> raw_map_data_;
     cv::Mat rgb_map_;
     cv::Mat depth_map_;
@@ -49,16 +61,9 @@ namespace ORB_SLAM2
     std::mutex map_mutex_;
     std::mutex raw_data_mutex_;
 
-    struct MapImageEntry {
-      MapFrameEntry (cv::Mat rgb, cv::Mat depth, cv::Mat pos)
-      : rgb_img(rgb), depth_img (depth) position (pos) {}
-      cv::Mat rgb_img;
-      cv::Mat depth_img;
-      cv::Mat position;
-    };
 
 };
 
-}// namespace ORB_SLAM
+} // namespace ORB_SLAM
 
 #endif // DENSE_MAP_H_

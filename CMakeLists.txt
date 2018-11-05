@@ -71,6 +71,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/orb_slam2/lib)
 add_library(${PROJECT_NAME} SHARED
 orb_slam2/src/System.cc
 orb_slam2/src/Tracking.cc
+orb_slam2/src/DenseMap.cc
 orb_slam2/src/LocalMapping.cc
 orb_slam2/src/LoopClosing.cc
 orb_slam2/src/ORBextractor.cc
