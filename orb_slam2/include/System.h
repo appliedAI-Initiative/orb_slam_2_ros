@@ -34,6 +34,7 @@
 #include "LoopClosing.h"
 #include "KeyFrameDatabase.h"
 #include "ORBVocabulary.h"
+#include "DenseMap.h"
 
 namespace ORB_SLAM2
 {
@@ -142,6 +143,9 @@ private:
 
     // KeyFrame database for place recognition (relocalization and loop detection).
     KeyFrameDatabase* mpKeyFrameDatabase;
+
+    //Dense map; only get used for rgbd if the parameter is set
+    DenseMap* mpDenseMap;
 
     // Map structure that stores the pointers to all KeyFrames and MapPoints.
     Map* mpMap;

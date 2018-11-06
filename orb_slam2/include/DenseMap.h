@@ -42,7 +42,7 @@ namespace ORB_SLAM2
   private:
 
       struct MapImageEntry {
-        MapImageEntry ();
+        MapImageEntry () {}
         MapImageEntry (cv::Mat rgb, cv::Mat depth, cv::Mat pos)
         : rgb_img(rgb), depth_img (depth), position (pos) {}
 
