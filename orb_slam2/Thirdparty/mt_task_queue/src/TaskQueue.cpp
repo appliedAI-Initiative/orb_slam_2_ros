@@ -10,7 +10,7 @@ TaskQueue::TaskQueue (unsigned int num_worker_threads) {
   end_runners_flag_ = false;
 
   for (int i : num_worker_threads) {
-    worker_threads_.push_back (std::thread (&TaskQueue::Worker, this));
+    worker_threads_.push_back (Worker (task_queue_, results_, queue_mutex_, map_mutex_, condition_var_));
   }
 }
 
@@ -18,7 +18,7 @@ TaskQueue::TaskQueue (unsigned int num_worker_threads) {
 TaskQueue::~TaskQueue () {
   end_runners_flag_ = true;
   for (int i : num_worker_threads) {
-    worker_threads_.join();
+    worker_threads_.EndWorker();
   }
 }
 
@@ -49,22 +49,6 @@ bool TaskQueue::ResultAvailable (unsigned int task_id) {
   } else {
     return false;
   }
-}
-
-
-void TaskQueue::Worker () {
-  std::unique_lock<std::mutex> lock(queue_mutex_);
-    while (!end_runners_flag_) {
-      condition_var_.wait(lock);
-
-      if (QueueIsEmpty) {
-        continue;
-      }
-
-      Task top_task = task_queue_.top();
-      task_queue_.pop();
-
-    }
 }
 
 

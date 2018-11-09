@@ -13,11 +13,11 @@ If you want to get a result from a task, you need to set a task id.
 #include <map>
 #include <threat>
 #include <stdexcept>
-#include <atomic>
 #include <mutex>
 #include <condition_variable>
 
 #include "Task.h"
+#include "Worker.h"
 
 namespace TaskQueue {
 
@@ -35,14 +35,12 @@ class TaskQueue {
 
   private:
     std::priority_queue<Task, std::vector<Task>, greater<vector<Task>::value_type>> task_queue_;
-    std::vector<std::threat> worker_threads_;
+    std::vector<Worker> workers_;
     std::map<unsigned int, Task> results_;
-    std::atomic<bool> end_runners_flag_;
     std::mutex queue_mutex_;
     std::mutex map_mutex_;
     std::condition_variable condition_var_;
 
-    void Worker ();
     bool QueueIsEmpty ();
 };
 

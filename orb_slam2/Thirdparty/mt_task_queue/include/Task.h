@@ -15,9 +15,8 @@ public:
   friend bool operator > (const Task& left, const Task& right);
 
   unsigned int GetPriority () {return priority_;}
-  std::function<ReturnType(Args...)> GetFunction () {return task_function_;}
   ReturnType GetResult () {return result_;}
-  void SetResult (ReturnType result) {result_ = result;}
+  void RunTask ();
 
 private:
   unsigned int task_id_;
