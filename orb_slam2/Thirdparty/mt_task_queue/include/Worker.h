@@ -2,24 +2,30 @@
 #define MT_TASK_QUEUE_WORKER_H_
 
 #include <functional>
-#include <threat>
+#include <thread>
 #include <mutex>
 #include <condition_variable>
 #include <map>
 #include <atomic>
+#include <queue>
+#include <vector>
+
+#include "Task.h"
 
 namespace TaskQueue {
 
+template <typename ReturnType, typename... Args>
 class Worker {
   public:
-    Worker (std::priority_queue<Task, std::vector<Task>, greater<vector<Task>::value_type>> &task_queue,
-       std::map<unsigned int, Task> &results, std::mutex &queue_mutex, std::mutex &map_mutex, std::condition_variable &condition_var);
+    Worker (std::priority_queue<Task<ReturnType, Args...>, std::vector<Task<ReturnType, Args...>>,
+                                std::greater<Task<ReturnType, Args...>>> &task_queue,
+            std::map<unsigned int, Task<ReturnType, Args...>> &results, std::mutex &queue_mutex, std::mutex &map_mutex, std::condition_variable &condition_var);
 
     void EndWorker() {end_operator_flag_ = true;}
 
   private:
-    std::priority_queue<Task, std::vector<Task>, greater<vector<Task>::value_type>> &task_queue_;
-    std::map<unsigned int, Task> &results_;
+    std::priority_queue <Task<ReturnType, Args...>, std::vector<Task<ReturnType, Args...>>, std::greater<Task<ReturnType, Args...>>> &task_queue_;
+    std::map<unsigned int, Task<ReturnType, Args...>> &results_;
     std::mutex &queue_mutex_;
     std::mutex &map_mutex_;
     std::mutex thread_mutex_;

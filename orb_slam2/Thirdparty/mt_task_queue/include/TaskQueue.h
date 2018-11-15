@@ -7,14 +7,15 @@ If you want to get a result from a task, you need to set a task id.
 #ifndef MT_TASK_QUEUE_TASKQUEUE_H_
 #define MT_TASK_QUEUE_TASKQUEUE_H_
 
-#include <dequeue>
+#include <deque>
 #include <functional>
 #include <vector>
 #include <map>
-#include <threat>
+#include <thread>
 #include <stdexcept>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 #include "Task.h"
 #include "Worker.h"
@@ -30,16 +31,18 @@ class TaskQueue {
     void AddTask (std::function<ReturnType(Args...)> task_function) {AddTask (1, task_function);}
     void AddTask (unsigned int priority, std::function<ReturnType(Args...)> task_function) {AddTask (0, 1, task_function);}
     void AddTask (unsigned int task_id, unsigned int priority, std::function<ReturnType(Args...)> task_function);
-    Task GetTask (unsigned int task_id);
+    Task<ReturnType, Args...> GetTask (unsigned int task_id);
     bool ResultAvailable (unsigned int task_id);
 
   private:
-    std::priority_queue<Task, std::vector<Task>, greater<vector<Task>::value_type>> task_queue_;
-    std::vector<Worker> workers_;
-    std::map<unsigned int, Task> results_;
+    //std::priority_queue<Task<ReturnType, Args...>, std::vector<Task<ReturnType, Args...>>, greater<vector<Task<ReturnType, Args...>>::value_type>> task_queue_;
+    std::priority_queue <Task<ReturnType, Args...>, std::vector<Task<ReturnType, Args...>>, std::greater<Task<ReturnType, Args...>>> task_queue_;
+    std::vector<Worker<ReturnType, Args...>> workers_;
+    std::map<unsigned int, Task<ReturnType, Args...>> results_;
     std::mutex queue_mutex_;
     std::mutex map_mutex_;
     std::condition_variable condition_var_;
+    std::atomic<bool> end_runners_flag_;
 
     bool QueueIsEmpty ();
 };

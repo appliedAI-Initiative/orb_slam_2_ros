@@ -65,6 +65,7 @@ ${catkin_INCLUDE_DIRS}
 
 include(${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/DBoW2/CMakeLists.txt)
 include(${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/g2o/CMakeLists.txt)
+include(${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/mt_task_queue/CMakeLists.txt)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/orb_slam2/lib)
 
@@ -88,7 +89,7 @@ orb_slam2/src/KeyFrameDatabase.cc
 orb_slam2/src/Sim3Solver.cc
 orb_slam2/src/Initializer.cc
 )
-add_dependencies (${PROJECT_NAME} g2o DBoW2)
+add_dependencies (${PROJECT_NAME} g2o DBoW2 mt_task_queue)
 
 target_link_libraries(${PROJECT_NAME}
 ${LIBS_ORBSLAM}

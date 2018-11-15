@@ -2,7 +2,8 @@
 
 namespace TaskQueue {
 
-TaskQueue::TaskQueue (unsigned int num_worker_threads) {
+template <typename ReturnType, typename... Args>
+TaskQueue<ReturnType, Args...>::TaskQueue (unsigned int num_worker_threads) {
   if (num_worker_threads == 0) {
     throw std::invalid_argument ("Cannot launch threat queue with 0 workers");
   }
@@ -10,29 +11,32 @@ TaskQueue::TaskQueue (unsigned int num_worker_threads) {
   end_runners_flag_ = false;
 
   for (int i : num_worker_threads) {
-    worker_threads_.push_back (Worker (task_queue_, results_, queue_mutex_, map_mutex_, condition_var_));
+    workers_.push_back (Worker<ReturnType, Args...> (task_queue_, results_, queue_mutex_, map_mutex_, condition_var_));
   }
 }
 
 
-TaskQueue::~TaskQueue () {
+template <typename ReturnType, typename... Args>
+TaskQueue<ReturnType, Args...>::~TaskQueue () {
   end_runners_flag_ = true;
-  for (int i : num_worker_threads) {
-    worker_threads_.EndWorker();
+  for (auto worker : workers_) {
+    worker.EndWorker();
   }
 }
 
 
-void TaskQueue::AddTask (unsigned int task_id, unsigned int priority, std::function<ReturnType(Args...)> task_function) {
-  unique_lock<mutex> lock(queue_mutex_);
-  task_queue_.push(Task (task_id, priority, task_function));
+template <typename ReturnType, typename... Args>
+void TaskQueue<ReturnType, Args...>::AddTask (unsigned int task_id, unsigned int priority, std::function<ReturnType(Args...)> task_function) {
+  std::unique_lock<std::mutex> lock(queue_mutex_);
+  task_queue_.push(Task<ReturnType, Args...> (task_id, priority, task_function));
   condition_var_.notify_one();
 }
 
 
-Task TaskQueue::GetTask (unsigned int task_id) {
-  unique_lock<mutex> lock(map_mutex_);
-  std::map<unsigned int, Task>::const_iterator it = results_.find (task_id);
+template <typename ReturnType, typename... Args>
+Task<ReturnType, Args...> TaskQueue<ReturnType, Args...>::GetTask (unsigned int task_id) {
+  std::unique_lock<std::mutex> lock(map_mutex_);
+  auto it = results_.find (task_id);
   if (it != results_.end()) {
     return results_[task_id];
   } else {
@@ -41,9 +45,10 @@ Task TaskQueue::GetTask (unsigned int task_id) {
 }
 
 
-bool TaskQueue::ResultAvailable (unsigned int task_id) {
-  unique_lock<mutex> lock(map_mutex_);
-  std::map<unsigned int, Task>::const_iterator it = results_.find (task_id);
+template <typename ReturnType, typename... Args>
+bool TaskQueue<ReturnType, Args...>::ResultAvailable (unsigned int task_id) {
+  std::unique_lock<std::mutex> lock(map_mutex_);
+  auto it = results_.find (task_id);
   if (it != results_.end()) {
     return true;
   } else {
@@ -52,8 +57,9 @@ bool TaskQueue::ResultAvailable (unsigned int task_id) {
 }
 
 
-bool TaskQueue::QueueIsEmpty () {
-  unique_lock<mutex> lock(queue_mutex_);
+template <typename ReturnType, typename... Args>
+bool TaskQueue<ReturnType, Args...>::QueueIsEmpty () {
+  std::unique_lock<std::mutex> lock(queue_mutex_);
   return task_queue_.empty();
 }
 
