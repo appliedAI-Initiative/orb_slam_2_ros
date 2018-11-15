@@ -33,6 +33,4 @@ private:
 
 } // namespace TaskQueue
 
-//#include "Task.cpp"
-
 #endif // MT_TASK_QUEUE_TASK_H_

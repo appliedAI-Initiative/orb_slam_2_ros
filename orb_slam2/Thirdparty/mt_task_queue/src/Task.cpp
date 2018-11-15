@@ -13,17 +13,6 @@ Task<ReturnType, Args...>::Task (unsigned int task_id, unsigned int priority, st
 }
 
 
-/*template <typename ReturnType, typename... Args>
-bool operator < (const Task& left, const Task& right) {
-  return left.GetPriority() < right.GetPriority();
-}
-
-
-template <typename ReturnType, typename... Args>
-bool operator > (const Task& left, const Task& right) {
-  return left.GetPriority() > right.GetPriority();
-}*/
-
 template <typename ReturnType, typename... Args>
 void Task<ReturnType, Args...>::Task::RunTask () {
   if (has_return_value_) {

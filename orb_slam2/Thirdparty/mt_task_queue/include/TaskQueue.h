@@ -35,7 +35,6 @@ class TaskQueue {
     bool ResultAvailable (unsigned int task_id);
 
   private:
-    //std::priority_queue<Task<ReturnType, Args...>, std::vector<Task<ReturnType, Args...>>, greater<vector<Task<ReturnType, Args...>>::value_type>> task_queue_;
     std::priority_queue <Task<ReturnType, Args...>, std::vector<Task<ReturnType, Args...>>, std::greater<Task<ReturnType, Args...>>> task_queue_;
     std::vector<Worker<ReturnType, Args...>> workers_;
     std::map<unsigned int, Task<ReturnType, Args...>> results_;
