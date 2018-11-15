@@ -1,6 +1,6 @@
 /*
 Small and simple task queue which supports mulithreading, result buffering and task priorization.
-If you want to get a result from a task, you need to set a task id.
+For more information see the README.
 */
 
 

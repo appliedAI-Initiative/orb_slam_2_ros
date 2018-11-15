@@ -1,3 +1,9 @@
+/*
+Small and simple task queue which supports mulithreading, result buffering and task priorization.
+For more information see the README.
+*/
+
+
 #ifndef MT_TASK_QUEUE_TASK_H_
 #define MT_TASK_QUEUE_TASK_H_
 

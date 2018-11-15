@@ -5,7 +5,6 @@ SET(mt_task_queue_LIBRARY_OUTPUT_DIRECTORY ${mt_task_queue_SOURCE_DIR}/lib CACHE
 # Set up the top-level include directories
 INCLUDE_DIRECTORIES(
 ${mt_task_queue_SOURCE_DIR}/include/
-${mt_task_queue_SOURCE_DIR}/src/ #because reasons.. - the compiler needs to find the source files for the templates
 )
 
 # Include the subdirectories
