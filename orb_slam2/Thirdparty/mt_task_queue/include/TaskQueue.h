@@ -15,7 +15,6 @@ For more information see the README.
 #include <stdexcept>
 #include <mutex>
 #include <condition_variable>
-#include <atomic>
 
 #include "Task.h"
 #include "Worker.h"
@@ -41,7 +40,6 @@ class TaskQueue {
     std::mutex queue_mutex_;
     std::mutex map_mutex_;
     std::condition_variable condition_var_;
-    std::atomic<bool> end_runners_flag_;
 
     bool QueueIsEmpty ();
 };

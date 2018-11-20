@@ -8,8 +8,6 @@ TaskQueue<ReturnType, Args...>::TaskQueue (unsigned int num_worker_threads) {
     throw std::invalid_argument ("Cannot launch threat queue with 0 workers");
   }
 
-  end_runners_flag_ = false;
-
   for (int i : num_worker_threads) {
     workers_.push_back (Worker<ReturnType, Args...> (task_queue_, results_, queue_mutex_, map_mutex_, condition_var_));
   }
@@ -18,7 +16,6 @@ TaskQueue<ReturnType, Args...>::TaskQueue (unsigned int num_worker_threads) {
 
 template <typename ReturnType, typename... Args>
 TaskQueue<ReturnType, Args...>::~TaskQueue () {
-  end_runners_flag_ = true;
   for (auto worker : workers_) {
     worker.EndWorker();
   }
