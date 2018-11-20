@@ -6,11 +6,12 @@ namespace ORB_SLAM2
 DenseMap::DenseMap () {
   is_new_ = false;
   create_dense_map_ = true;
+  task_queue_ = new TaskQueue::TaskQueue<DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr> (1);
 }
 
 
 DenseMap::~DenseMap () {
-
+  delete task_queue_;
 }
 
 

@@ -52,7 +52,7 @@ if you use ORB-SLAM2 (Stereo or RGB-D) in an academic work, please cite:
 We have tested the library in **Ubuntu 16.04** with **ROS Kinetic** and **Ubuntu 18.04** with **ROS Melodic**. A powerful computer (e.g. i7) will ensure real-time performance and provide more stable and accurate results.
 
 ## C++11
-We use the new thread and chrono functionalities of C++11.
+We use all kinds of functionalities from C++11.
 
 ## OpenCV
 We use [OpenCV](http://opencv.org) to manipulate images and features. OpenCV should be installed along with ROS.
@@ -64,6 +64,9 @@ Otherwise Eigen can be installed as a binary with:
 sudo apt install libeigen3-dev
 ```
 **Required at least 3.1.0**.
+
+## Point Cloud Library (PCL)
+We use the [PCL](http://pointclouds.org) to create the dense map. The PCL should come with the full ROS installation. If this is not the case make sure to install it, for example with rosdep.
 
 ## DBoW2 and g2o (Included in Thirdparty folder)
 We use modified versions of the [DBoW2](https://github.com/dorian3d/DBoW2) library to perform place recognition and [g2o](https://github.com/RainerKuemmerle/g2o) library to perform non-linear optimizations. Both modified libraries (which are BSD) are included in the *Thirdparty* folder.

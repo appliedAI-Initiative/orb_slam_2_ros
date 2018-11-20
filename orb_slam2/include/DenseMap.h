@@ -21,6 +21,10 @@
 #define DENSE_MAP_H_
 
 #include "KeyFrame.h"
+#include "Thirdparty/mt_task_queue/include/TaskQueue.h"
+
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 
 #include <mutex>
 #include <thread>
@@ -31,6 +35,9 @@ namespace ORB_SLAM2
 
   class DenseMap
 {
+  typedef pcl::PointXYZRGBA PointRGBD;
+  typedef pcl::PointCloud<DenseMap::PointRGBD> PointCloudRGBD;
+
   public:
     DenseMap ();
     ~DenseMap ();
@@ -40,7 +47,6 @@ namespace ORB_SLAM2
     void UpdateFramePosition (unsigned long int frame_id, cv::Mat &position);
 
   private:
-
       struct MapImageEntry {
         MapImageEntry () {}
         MapImageEntry (cv::Mat rgb, cv::Mat depth, cv::Mat pos)
@@ -57,7 +63,7 @@ namespace ORB_SLAM2
     std::map <unsigned long int, MapImageEntry> raw_map_data_;
     cv::Mat rgb_map_;
     cv::Mat depth_map_;
-
+    TaskQueue::TaskQueue<DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr> *task_queue_;
     std::mutex map_mutex_;
     std::mutex raw_data_mutex_;
 

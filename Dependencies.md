@@ -25,6 +25,9 @@ This is a modified version of [DBoW2](https://github.com/dorian3d/DBoW2) and [DL
 * All code in **g2o** folder.
 This is a modified version of [g2o](https://github.com/RainerKuemmerle/g2o). All files included are BSD licensed.
 
+* All code in **mt_task_queue** folder.
+This is a small and simple task queue which supports mulithreading, result buffering and task priorization. All files included are BSD licensed.
+
 #####Library dependencies
 
 * **OpenCV**.

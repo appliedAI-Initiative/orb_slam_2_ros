@@ -25,6 +25,8 @@ cv_bridge
 image_transport
 tf
 sensor_msgs
+pcl_conversions
+pcl_ros
 )
 
 find_package(OpenCV 3.0 QUIET)
@@ -52,7 +54,7 @@ ${catkin_LIBRARIES}
 
 catkin_package (
   CATKIN_DEPENDS roscpp std_msgs cv_bridge image_transport tf sensor_msgs
-  LIBRARIES {PROJECT_NAME} libDBoW2 libg2o
+  LIBRARIES {PROJECT_NAME} libDBoW2 libg2o mt_task_queue
 )
 
 include_directories(
@@ -131,7 +133,7 @@ install(TARGETS ${PROJECT_NAME}_mono ${PROJECT_NAME}_stereo ${PROJECT_NAME}_rgbd
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(TARGETS ${PROJECT_NAME} DBoW2 g2o
+install(TARGETS ${PROJECT_NAME} DBoW2 g2o mt_task_queue
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
