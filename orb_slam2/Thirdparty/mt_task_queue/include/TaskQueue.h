@@ -32,6 +32,7 @@ class TaskQueue {
     void AddTask (unsigned int task_id, unsigned int priority, std::function<ReturnType(Args...)> task_function);
     Task<ReturnType, Args...> GetTask (unsigned int task_id);
     bool ResultAvailable (unsigned int task_id);
+    unsigned int NumJobsCurrentlyRunning ();
 
   private:
     std::priority_queue <Task<ReturnType, Args...>, std::vector<Task<ReturnType, Args...>>, std::greater<Task<ReturnType, Args...>>> task_queue_;

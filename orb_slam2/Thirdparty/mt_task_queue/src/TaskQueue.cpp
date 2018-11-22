@@ -60,4 +60,16 @@ bool TaskQueue<ReturnType, Args...>::QueueIsEmpty () {
   return task_queue_.empty();
 }
 
+
+template <typename ReturnType, typename... Args>
+unsigned int TaskQueue<ReturnType, Args...>::NumJobsCurrentlyRunning () {
+  unsigned int workers_working = 0;
+  for (auto worker : workers_) {
+    if (worker.IsIdeling()) {
+      workers_working ++;
+    }
+  }
+  return workers_working;
+}
+
 } // namespace TaskQueue

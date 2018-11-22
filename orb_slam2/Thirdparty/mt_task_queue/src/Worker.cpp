@@ -10,6 +10,7 @@ Worker<ReturnType, Args...>::Worker (std::priority_queue<Task<ReturnType, Args..
                 std::condition_variable &condition_var)
                 : task_queue_(task_queue), results_(results), queue_mutex_(queue_mutex), map_mutex_(map_mutex), condition_var_(condition_var) {
   end_operator_flag_ = false;
+  idle_ = true;
   Operator ();
 }
 
@@ -18,14 +19,16 @@ template <typename ReturnType, typename... Args>
 void Worker<ReturnType, Args...>::Operator () {
   std::unique_lock<std::mutex> lock (thread_mutex_);
   while (!end_operator_flag_) {
+    idle_ = true;
     condition_var_.wait(lock);
 
     queue_mutex_.lock();
     if (task_queue_.empty()) {
+      queue_mutex_.unlock();
       continue;
     }
-
-    queue_mutex_.lock();
+    idle_ = false;
+    
     Task<ReturnType, Args...> top_task = task_queue_.top();
     task_queue_.pop();
     queue_mutex_.unlock();

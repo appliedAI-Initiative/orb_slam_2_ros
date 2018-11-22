@@ -28,6 +28,7 @@ class Worker {
             std::map<unsigned int, Task<ReturnType, Args...>> &results, std::mutex &queue_mutex, std::mutex &map_mutex, std::condition_variable &condition_var);
 
     void EndWorker() {end_operator_flag_ = true;}
+    bool IsIdeling () {return idle_;}
 
   private:
     std::priority_queue <Task<ReturnType, Args...>, std::vector<Task<ReturnType, Args...>>, std::greater<Task<ReturnType, Args...>>> &task_queue_;
@@ -37,6 +38,7 @@ class Worker {
     std::mutex thread_mutex_;
     std::condition_variable &condition_var_;
     std::atomic<bool> end_operator_flag_;
+    std::atomic<bool> idle_;
     std::thread worker_thread_;
 
     void Operator ();
