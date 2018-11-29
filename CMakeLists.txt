@@ -44,6 +44,7 @@ ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
 ${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/DBoW2/lib/libDBoW2.so
 ${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/g2o/lib/libg2o.so
+${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/mt_task_queue/lib/libmt_task_queue.so
 )
 
 set(LIBS_ROS
@@ -54,7 +55,7 @@ ${catkin_LIBRARIES}
 
 catkin_package (
   CATKIN_DEPENDS roscpp std_msgs cv_bridge image_transport tf sensor_msgs
-  LIBRARIES {PROJECT_NAME} libDBoW2 libg2o mt_task_queue
+  LIBRARIES {PROJECT_NAME} libDBoW2 libg2o libmt_task_queue
 )
 
 include_directories(

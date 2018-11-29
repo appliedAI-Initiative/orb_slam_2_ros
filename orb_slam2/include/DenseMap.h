@@ -29,6 +29,7 @@
 #include <mutex>
 #include <thread>
 #include <map>
+#include <functional>
 
 namespace ORB_SLAM2
 {
@@ -57,13 +58,18 @@ namespace ORB_SLAM2
         cv::Mat position;
       };
 
-    void FitFrame (unsigned long int frame_id);
+    void AddFrameToMap (unsigned long int frame_id);
+    void MatsToPclRGBDCloud (cv::Mat depth_mat, cv::Mat rgb_mat, DenseMap::PointCloudRGBD::Ptr cloud);
+    void PclRGBDCloudToMats (DenseMap::PointCloudRGBD::Ptr cloud, cv::Mat depth_mat, cv::Mat rgb_mat);
+    DenseMap::PointCloudRGBD::Ptr FitFrame (DenseMap::PointCloudRGBD::Ptr map, DenseMap::PointCloudRGBD::Ptr frame, cv::Mat);
+
     bool is_new_;
     bool create_dense_map_;
+    unsigned int current_task_id_;
     std::map <unsigned long int, MapImageEntry> raw_map_data_;
     cv::Mat rgb_map_;
     cv::Mat depth_map_;
-    TaskQueue::TaskQueue<DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr> *task_queue_;
+    TaskQueue::TaskQueue<DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr, cv::Mat> *task_queue_;
     std::mutex map_mutex_;
     std::mutex raw_data_mutex_;
 
