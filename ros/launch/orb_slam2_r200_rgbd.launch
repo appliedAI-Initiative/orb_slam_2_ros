@@ -1,8 +1,8 @@
 <launch>
-  <node name="orb_slam2_rgbd" pkg="orb_slam2_ros"
+  <node name="orb_slam2_r200_rgbd" pkg="orb_slam2_ros"
       type="orb_slam2_ros_rgbd" args="
           $(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt
-          $(find orb_slam2_ros)/orb_slam2/config/RealSenseRGBD.yaml"
+          $(find orb_slam2_ros)/orb_slam2/config/RealSenseR200RGBD.yaml"
       output="screen">
        <remap from="/camera/rgb/image_raw" to="/camera/rgb/image_rect_color" />
        <remap from="/camera/depth_registered/image_raw" to="/camera/depth_registered/sw_registered/image_rect" />

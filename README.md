@@ -9,6 +9,7 @@ This is the ROS implementation of the ORB-SLAM2 real-time SLAM library for **Mon
 - Data I/O via ROS topics
 - Parameters can be set with the rqt_reconfigure gui during runtime
 - Very quick startup through considerably sped up vocab file loading
+- Supports the Intel RealSense r200 and D435 out of the box
 
 ### Related Publications:
 [Monocular] Raúl Mur-Artal, J. M. M. Montiel and Juan D. Tardós. **ORB-SLAM: A Versatile and Accurate Monocular SLAM System**. *IEEE Transactions on Robotics,* vol. 31, no. 5, pp. 1147-1163, 2015. (**2015 IEEE Transactions on Robotics Best Paper Award**). **[PDF](http://webdiis.unizar.es/~raulmur/MurMontielTardosTRO15.pdf)**.
@@ -128,9 +129,22 @@ source devel/setup.bash
 ```
 you can run the the corresponding nodes with one of the following commands:
 ```
-roslaunch orb_slam2_ros orb_slam2_mono.launch
-roslaunch orb_slam2_ros orb_slam2_stereo.launch
-roslaunch orb_slam2_ros orb_slam2_rgbd.launch
+roslaunch orb_slam2_ros orb_slam2_r200_mono.launch
+roslaunch orb_slam2_ros orb_slam2_r200_stereo.launch
+roslaunch orb_slam2_ros orb_slam2_r200_rgbd.launch
+roslaunch orb_slam2_ros orb_slam2_d435_mono.launch
+roslaunch orb_slam2_ros orb_slam2_d435_rgbd.launch
+```
+# 5. FAQ
+The node for the RealSense fails to launch when running
+```
+roslaunch realsense2_camera rs_rgbd.launch
+```
+to get the depth stream.
+**Solution:**
+install the rgbd-launch package with the command (make sure to adjust the ROS distro if needed):
+```
+sudo apt install ros-melodic-rgbd-launch
 ```
 
 
