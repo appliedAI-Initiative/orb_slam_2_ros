@@ -2,7 +2,7 @@
   <node name="orb_slam2_d435_rgbd" pkg="orb_slam2_ros"
       type="orb_slam2_ros_rgbd" args="
           $(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt
-          $(find orb_slam2_ros)/orb_slam2/config/RealSenseR200RGBD.yaml"
+          $(find orb_slam2_ros)/orb_slam2/config/RealSenseD435RGBD.yaml"
       output="screen">
        <remap from="/camera/rgb/image_raw" to="/camera/color/image_rect_color" />
        <remap from="/camera/depth_registered/image_raw" to="/camera/depth/image_rect_raw" />

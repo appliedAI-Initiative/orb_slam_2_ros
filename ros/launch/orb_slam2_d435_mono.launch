@@ -2,7 +2,7 @@
   <node name="orb_slam2_r200_mono" pkg="orb_slam2_ros"
       type="orb_slam2_ros_mono" args="
           $(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt
-          $(find orb_slam2_ros)/orb_slam2/config/RealSenseR200Mono.yaml"
+          $(find orb_slam2_ros)/orb_slam2/config/RealSenseD435Mono.yaml"
       output="screen">
        <remap from="/camera/image_raw" to="/camera/color/image_raw" />
 
