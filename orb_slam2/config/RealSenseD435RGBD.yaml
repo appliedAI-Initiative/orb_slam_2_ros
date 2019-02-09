@@ -1,16 +1,16 @@
 %YAML:1.0
 
 # Camera calibration and distortion parameters (OpenCV)
-Camera.fx: 613.273638
-Camera.fy: 611.897782
-Camera.cx: 321.819255
-Camera.cy: 251.802312
+Camera.fx: 615.6707153320312
+Camera.fy: 615.962158203125
+Camera.cx: 328.0010681152344
+Camera.cy: 241.31031799316406
 
 # Camera distortion parameters (OpenCV)
-Camera.k1: 0.081516
-Camera.k2: -0.125375
-Camera.p1: 0.005576
-Camera.p2: -0.006738
+Camera.k1: 0.0
+Camera.k2: 0.0
+Camera.p1: 0.0
+Camera.p2: 0.0
 Camera.k3: 0.0
 
 Camera.width: 640
