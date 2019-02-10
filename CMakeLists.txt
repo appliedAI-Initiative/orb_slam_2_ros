@@ -18,11 +18,13 @@ LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/orb_slam2/cmake_modules)
 
 find_package (catkin REQUIRED COMPONENTS
 roscpp
+rospy
 std_msgs
 cv_bridge
 image_transport
 tf
 sensor_msgs
+dynamic_reconfigure
 )
 
 find_package(OpenCV 3.0 QUIET)
@@ -34,6 +36,12 @@ if(NOT OpenCV_FOUND)
 endif()
 
 find_package(Eigen3 3.1.0 REQUIRED)
+
+execute_process(COMMAND chmod a+x ros/config/dynamic_reconfigure.cfg
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        RESULT_VARIABLE cmd_result
+        OUTPUT_VARIABLE cmd_ver)
+message(STATUS "Chmod a+x the dynamic_reconfigure file")
 
 set(LIBS_ORBSLAM
 ${OpenCV_LIBS}
@@ -49,7 +57,7 @@ ${catkin_LIBRARIES}
 )
 
 catkin_package (
-  CATKIN_DEPENDS roscpp std_msgs cv_bridge image_transport tf sensor_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs cv_bridge image_transport tf sensor_msgs dynamic_reconfigure
   LIBRARIES {PROJECT_NAME} libDBoW2 libg2o
 )
 
