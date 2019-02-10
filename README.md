@@ -65,7 +65,7 @@ sudo apt install libeigen3-dev
 ```
 **Required at least 3.1.0**.
 
-## DBoW2 and g2o (Included in Thirdparty folder)
+## DBoW2 and g2o (Included in orb_slam2/Thirdparty)
 We use modified versions of the [DBoW2](https://github.com/dorian3d/DBoW2) library to perform place recognition and [g2o](https://github.com/RainerKuemmerle/g2o) library to perform non-linear optimizations. Both modified libraries (which are BSD) are included in the *Thirdparty* folder.
 
 ## ROS / catkin
