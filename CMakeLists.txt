@@ -5,8 +5,6 @@ IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Release)
 ENDIF()
 
-#MESSAGE("Build type: " ${CMAKE_BUILD_TYPE})
-
 # Check for c++11 support
 INCLUDE(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -18,11 +16,13 @@ LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/orb_slam2/cmake_modules)
 
 find_package (catkin REQUIRED COMPONENTS
 roscpp
+rospy
 std_msgs
 cv_bridge
 image_transport
 tf
 sensor_msgs
+dynamic_reconfigure
 )
 
 find_package(OpenCV 3.0 QUIET)
@@ -34,6 +34,17 @@ if(NOT OpenCV_FOUND)
 endif()
 
 find_package(Eigen3 3.1.0 REQUIRED)
+
+set (DYNAMIC_RECONFIGURE_PATH ros/config/dynamic_reconfigure.cfg)
+execute_process(COMMAND chmod a+x ${DYNAMIC_RECONFIGURE_PATH}
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+        RESULT_VARIABLE cmd_result
+        OUTPUT_VARIABLE cmd_ver)
+message(STATUS "Chmod a+x the dynamic_reconfigure file")
+
+generate_dynamic_reconfigure_options(
+        ${DYNAMIC_RECONFIGURE_PATH}
+)
 
 set(LIBS_ORBSLAM
 ${OpenCV_LIBS}
@@ -49,7 +60,7 @@ ${catkin_LIBRARIES}
 )
 
 catkin_package (
-  CATKIN_DEPENDS roscpp std_msgs cv_bridge image_transport tf sensor_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs cv_bridge image_transport tf sensor_msgs dynamic_reconfigure
   LIBRARIES {PROJECT_NAME} libDBoW2 libg2o
 )
 
@@ -95,7 +106,7 @@ add_executable (${PROJECT_NAME}_mono
 ros/src/MonoNode.cc
 ros/src/Node.cc
 )
-add_dependencies (${PROJECT_NAME}_mono ${PROJECT_NAME})
+add_dependencies (${PROJECT_NAME}_mono ${PROJECT_NAME} ${PROJECT_NAME}_gencfg)
 
 target_link_libraries(${PROJECT_NAME}_mono
 ${LIBS_ROS}
@@ -105,7 +116,7 @@ add_executable (${PROJECT_NAME}_stereo
 ros/src/StereoNode.cc
 ros/src/Node.cc
 )
-add_dependencies (${PROJECT_NAME}_stereo ${PROJECT_NAME})
+add_dependencies (${PROJECT_NAME}_stereo ${PROJECT_NAME} ${PROJECT_NAME}_gencfg)
 
 target_link_libraries(${PROJECT_NAME}_stereo
 ${LIBS_ROS}
@@ -115,7 +126,7 @@ add_executable (${PROJECT_NAME}_rgbd
 ros/src/RGBDNode.cc
 ros/src/Node.cc
 )
-add_dependencies (${PROJECT_NAME}_rgbd ${PROJECT_NAME})
+add_dependencies (${PROJECT_NAME}_rgbd ${PROJECT_NAME} ${PROJECT_NAME}_gencfg)
 
 target_link_libraries(${PROJECT_NAME}_rgbd
 ${LIBS_ROS}
@@ -135,6 +146,10 @@ install(TARGETS ${PROJECT_NAME} DBoW2 g2o
 
 install(DIRECTORY ros/launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ros/launch
+)
+
+install(DIRECTORY ros/config/
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ros/config
 )
 
 install(DIRECTORY orb_slam2/config/
