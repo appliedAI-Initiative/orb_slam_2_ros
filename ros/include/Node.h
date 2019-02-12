@@ -29,6 +29,9 @@
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/core/core.hpp>
 
+#include <dynamic_reconfigure/server.h>
+#include <orb_slam2_ros/dynamic_reconfigureConfig.h>
+
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
@@ -55,10 +58,11 @@ class Node
     void PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points);
     void PublishPositionAsTransform (cv::Mat position);
     void PublishRenderedImage (cv::Mat image);
-    void UpdateParameters ();
+    void ParamsChangedCallback(orb_slam2_ros::dynamic_reconfigureConfig &config, uint32_t level);
     tf::Transform TransformFromMat (cv::Mat position_mat);
     sensor_msgs::PointCloud2 MapPointsToPointCloud (std::vector<ORB_SLAM2::MapPoint*> map_points);
-    void InitParameters ();
+
+    dynamic_reconfigure::Server<orb_slam2_ros::dynamic_reconfigureConfig> dynamic_param_server_;
 
     image_transport::Publisher rendered_image_publisher_;
     ros::Publisher map_points_publisher_;
@@ -66,11 +70,8 @@ class Node
     std::string name_of_node_;
     ros::NodeHandle node_handle_;
 
-    bool localize_only_param_;
-    bool reset_map_param_;
     std::string map_frame_id_param_;
     std::string camera_frame_id_param_;
-    int minimum_num_of_kf_in_map_param_;
     bool publish_pointcloud_param_;
 };
 
