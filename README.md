@@ -7,7 +7,7 @@ This is the ROS implementation of the ORB-SLAM2 real-time SLAM library for **Mon
 ## Features
 - Full ROS compatibility
 - Data I/O via ROS topics
-- Parameters can be set via the ROS parameters server during runtime
+- Parameters can be set with the rqt_reconfigure gui during runtime
 - Very quick startup through considerably sped up vocab file loading
 
 ### Related Publications:
@@ -90,14 +90,21 @@ To run the algorithm expects both a vocabulary file (see the paper) and a **conf
 
 ## ROS parameters and topics
 ### Parameters
-In the launch files which can be found at ros/launch there are different parameters which can be adjusted:
+There are three types of parameters right now: static- and dynamic ros parameters and camera settings from the config file.
+The static parameters are send to the ROS parameter server at startup and are not supposed to change. They are set in the launch files which are located at ros/launch. The parameters are:
 
 - **publish_pointcloud**: Bool. If the pointcloud containing all key points (the map) should be published.
-- **localize_only**: Bool. Toggle from/to only localization. The SLAM will then no longer add no new points to the map.
-- **reset_map**: Bool. Set to true to erase the map and start new. After reset the parameter will automatically update back to false.
 - **pointcloud_frame_id**: String. The Frame id of the Pointcloud/map.
 - **camera_frame_id**: String. The Frame id of the camera position.
+
+Dynamic parameters can be changed at runtime. Either by updating them directly via the command line or by using [rqt_reconfigure](http://wiki.ros.org/rqt_reconfigure) which is the recommended way.
+The parameters are:
+
+- **localize_only**: Bool. Toggle from/to only localization. The SLAM will then no longer add no new points to the map.
+- **reset_map**: Bool. Set to true to erase the map and start new. After reset the parameter will automatically update back to false.
 - **min_num_kf_in_map**: Int. Number of key frames a map has to have to not get reset after tracking is lost.
+
+Finally, the intrinsic camera calibration parameters along with some hyperparameters can be found in the specific yaml files in orb_slam2/config.
 
 ### Published topics
 The following topics are being published and subscribed to by the nodes:
@@ -125,3 +132,5 @@ roslaunch orb_slam2_ros orb_slam2_mono.launch
 roslaunch orb_slam2_ros orb_slam2_stereo.launch
 roslaunch orb_slam2_ros orb_slam2_rgbd.launch
 ```
+
+
