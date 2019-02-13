@@ -6,10 +6,10 @@ The original implementation can be found [here](https://github.com/raulmur/ORB_S
 This is the ROS implementation of the ORB-SLAM2 real-time SLAM library for **Monocular**, **Stereo** and **RGB-D** cameras that computes the camera trajectory and a sparse 3D reconstruction (in the stereo and RGB-D case with true scale). It is able to detect loops and relocalize the camera in real time. This implementation removes the Pangolin dependency, and the original viewer. All data I/O is handled via ROS topics. For vizualization you can use RViz. This repository is maintained by [Lennart Haller](http://lennarthaller.de) on behalf of [appliedAI](http://appliedai.de).
 ## Features
 - Full ROS compatibility
+- Supports the Intel RealSense R200 and D435 out of the box
 - Data I/O via ROS topics
 - Parameters can be set with the rqt_reconfigure gui during runtime
 - Very quick startup through considerably sped up vocab file loading
-- Supports the Intel RealSense r200 and D435 out of the box
 
 ### Related Publications:
 [Monocular] Raúl Mur-Artal, J. M. M. Montiel and Juan D. Tardós. **ORB-SLAM: A Versatile and Accurate Monocular SLAM System**. *IEEE Transactions on Robotics,* vol. 31, no. 5, pp. 1147-1163, 2015. (**2015 IEEE Transactions on Robotics Best Paper Award**). **[PDF](http://webdiis.unizar.es/~raulmur/MurMontielTardosTRO15.pdf)**.
