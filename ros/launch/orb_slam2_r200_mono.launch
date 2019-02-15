@@ -1,5 +1,5 @@
 <launch>
-  <node name="orb_slam2_r200_mono" pkg="orb_slam2_ros"
+  <node name="orb_slam2_mono" pkg="orb_slam2_ros"
       type="orb_slam2_ros_mono" args="
           $(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt
           $(find orb_slam2_ros)/orb_slam2/config/RealSenseR200Mono.yaml"
