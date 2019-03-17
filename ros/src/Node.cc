@@ -81,12 +81,12 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
 
   tf::Vector3 tf_camera_translation (translation.at<float> (0), translation.at<float> (1), translation.at<float> (2));
 
-  //Coordinate transformation matrix : same as invYZ * Rz * Rx
+  //Coordinate transformation matrix from orb coordinate system to ros coordinate system
   const tf::Matrix3x3 matTrans (0, 0, 1,
                                -1, 0, 0,
                                 0,-1, 0);
 
-  //Convert from orb coordinates to ros coordinates
+  //Transform from orb coordinate system to ros coordinate system on camera coordinates
   tf_camera_rotation = matTrans*tf_camera_rotation;
   tf_camera_translation = matTrans*tf_camera_translation;
 
@@ -94,7 +94,7 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
   tf_camera_rotation = tf_camera_rotation.transpose();
   tf_camera_translation = -(tf_camera_rotation*tf_camera_translation);
 
-  //Convert from orb coordinates to ros coordinates
+  //Transform from orb coordinate system to ros coordinate system on map coordinates
   tf_camera_rotation = matTrans*tf_camera_rotation;
   tf_camera_translation = matTrans*tf_camera_translation;
 
