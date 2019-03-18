@@ -136,6 +136,14 @@ roslaunch orb_slam2_ros orb_slam2_d435_mono.launch
 roslaunch orb_slam2_ros orb_slam2_d435_rgbd.launch
 ```
 # 5. FAQ
+Here are some answers to frequently asked questions.
+### Using a new / different camera
+You can use this SLAM with almost any mono, stereo or RGBD cam you want.
+There are two files which need to be adjusted for a new camera:
+1) **The yaml config file** at orb_slam2/config for the camera intrinsics and some configurations. [Here](https://docs.opencv.org/3.1.0/dc/dbb/tutorial_py_calibration.html) you can read about what the calibration parameters mean. Use [this](http://wiki.ros.org/camera_calibration) ros node to obtain them for your camera. If you use a stereo or RGBD cam in addition to the calibration and resolution you need to adjust the other parameters such as Camera.bf, ThDepth and DepthMapFactor.
+2) **The ros launch file** which is at ros/launch needs to have the correct topics to subscribe to from the new camera.
+
+### Problem running the realsense node
 The node for the RealSense fails to launch when running
 ```
 roslaunch realsense2_camera rs_rgbd.launch
@@ -146,5 +154,3 @@ install the rgbd-launch package with the command (make sure to adjust the ROS di
 ```
 sudo apt install ros-melodic-rgbd-launch
 ```
-
-
