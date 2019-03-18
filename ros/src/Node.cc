@@ -71,8 +71,8 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
   cv::Mat rotation(3,3,CV_32F);
   cv::Mat translation(3,1,CV_32F);
 
-  rotation = position_mat.rowRange(0,3).colRange(0,3).t();
-  translation = rotation*position_mat.rowRange(0,3).col(3);
+  rotation = position_mat.rowRange(0,3).colRange(0,3);
+  translation = position_mat.rowRange(0,3).col(3);
 
   tf::Matrix3x3 tf_camera_rotation (rotation.at<float> (0,0), rotation.at<float> (0,1), rotation.at<float> (0,2),
                                     rotation.at<float> (1,0), rotation.at<float> (1,1), rotation.at<float> (1,2),
@@ -81,29 +81,22 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
 
   tf::Vector3 tf_camera_translation (translation.at<float> (0), translation.at<float> (1), translation.at<float> (2));
 
-  const tf::Matrix3x3 Rx (1, 0, 0,
-                          0, 0, -1,
-                          0, 1, 0);
+  //Coordinate transformation matrix from orb coordinate system to ros coordinate system
+  const tf::Matrix3x3 matTrans (0, 0, 1,
+                               -1, 0, 0,
+                                0,-1, 0);
 
-  const tf::Matrix3x3 Rz (0, -1, 0,
-                          1, 0, 0,
-                          0, 0, 1);
+  //Transform from orb coordinate system to ros coordinate system on camera coordinates
+  tf_camera_rotation = matTrans*tf_camera_rotation;
+  tf_camera_translation = matTrans*tf_camera_translation;
 
-  const tf::Matrix3x3 invX (-1, 0, 0,
-                            0, 1, 0,
-                            0, 0, 1);
+  //Inverse matrix
+  tf_camera_rotation = tf_camera_rotation.transpose();
+  tf_camera_translation = -(tf_camera_rotation*tf_camera_translation);
 
-  const tf::Matrix3x3 invYZ (1, 0, 0,
-                            0, -1, 0,
-                            0, 0, -1);
-
-  tf_camera_rotation = Rx*tf_camera_rotation;
-  tf_camera_rotation = Rz*tf_camera_rotation;
-  tf_camera_translation = Rx*tf_camera_translation;
-  tf_camera_translation = Rz*tf_camera_translation;
-
-  tf_camera_rotation = invYZ*tf_camera_rotation;
-  tf_camera_translation = invX*tf_camera_translation;
+  //Transform from orb coordinate system to ros coordinate system on map coordinates
+  tf_camera_rotation = matTrans*tf_camera_rotation;
+  tf_camera_translation = matTrans*tf_camera_translation;
 
   return tf::Transform (tf_camera_rotation, tf_camera_translation);
 }
