@@ -104,6 +104,7 @@ The parameters are:
 - **localize_only**: Bool. Toggle from/to only localization. The SLAM will then no longer add no new points to the map.
 - **reset_map**: Bool. Set to true to erase the map and start new. After reset the parameter will automatically update back to false.
 - **min_num_kf_in_map**: Int. Number of key frames a map has to have to not get reset after tracking is lost.
+- **min_observations_for_ros_map**: Int. Number of minimal observations a key point must have to be published in the point cloud. This doesn't influence the behavior of the SLAM itself at all.
 
 Finally, the intrinsic camera calibration parameters along with some hyperparameters can be found in the specific yaml files in orb_slam2/config.
 
