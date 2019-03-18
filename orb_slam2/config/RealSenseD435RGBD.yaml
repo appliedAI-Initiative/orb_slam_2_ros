@@ -26,7 +26,7 @@ Camera.fps: 30.0
 Camera.RGB: 1
 
 # Close/Far threshold. Baseline times.
-ThDepth: 10.0
+ThDepth: 40.0
 
 # Deptmap values factor (what pixel value in the depth image corresponds to 1m?)
 DepthMapFactor: 1000.0
