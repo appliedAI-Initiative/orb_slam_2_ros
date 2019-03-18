@@ -73,6 +73,7 @@ class Node
     std::string map_frame_id_param_;
     std::string camera_frame_id_param_;
     bool publish_pointcloud_param_;
+    int min_observations_per_point_;
 };
 
 #endif //ORBSLAM2_ROS_NODE_H_

@@ -6,6 +6,7 @@ Node::Node (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transp
   name_of_node_ = ros::this_node::getName();
   orb_slam_ = pSLAM;
   node_handle_ = node_handle;
+  min_observations_per_point_ = 2;
 
   //static parameters
   node_handle_.param(name_of_node_+"/publish_pointcloud", publish_pointcloud_param_, true);
@@ -135,7 +136,7 @@ sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::Map
 
   float data_array[3];
   for (unsigned int i=0; i<cloud.width; i++) {
-    if (!map_points.at(i)->isBad()) {
+    if (map_points.at(i)->nObs >= min_observations_per_point_) {//nObs isBad()
       data_array[0] = map_points.at(i)->GetWorldPos().at<float> (2); //x. Do the transformation by just reading at the position of z instead of x
       data_array[1] = -1.0* map_points.at(i)->GetWorldPos().at<float> (0); //y. Do the transformation by just reading at the position of x instead of y
       data_array[2] = -1.0* map_points.at(i)->GetWorldPos().at<float> (1); //z. Do the transformation by just reading at the position of y instead of z
@@ -151,6 +152,7 @@ sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::Map
 
 void Node::ParamsChangedCallback(orb_slam2_ros::dynamic_reconfigureConfig &config, uint32_t level) {
   orb_slam_->EnableLocalizationOnly (config.localize_only);
+  min_observations_per_point_ = config.min_observations_for_ros_map;
 
   if (config.reset_map) {
     orb_slam_->Reset();
