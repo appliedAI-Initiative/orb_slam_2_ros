@@ -152,15 +152,15 @@ sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::Map
 
 	unsigned char *cloud_data_ptr = &(cloud.data[0]);
 
-  float data_array[3];
+  float data_array[num_channels];
   for (unsigned int i=0; i<cloud.width; i++) {
-    if (map_points.at(i)->nObs >= min_observations_per_point_) {//nObs isBad()
+    if (map_points.at(i)->nObs >= min_observations_per_point_) {
       data_array[0] = map_points.at(i)->GetWorldPos().at<float> (2); //x. Do the transformation by just reading at the position of z instead of x
       data_array[1] = -1.0* map_points.at(i)->GetWorldPos().at<float> (0); //y. Do the transformation by just reading at the position of x instead of y
       data_array[2] = -1.0* map_points.at(i)->GetWorldPos().at<float> (1); //z. Do the transformation by just reading at the position of y instead of z
       //TODO dont hack the transformation but have a central conversion function for MapPointsToPointCloud and TransformFromMat
 
-      memcpy(cloud_data_ptr+(i*cloud.point_step), data_array, 3*sizeof(float));
+      memcpy(cloud_data_ptr+(i*cloud.point_step), data_array, num_channels*sizeof(float));
     }
   }
 
