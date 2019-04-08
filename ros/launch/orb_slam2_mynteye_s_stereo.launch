@@ -1,0 +1,14 @@
+<launch>
+  <node name="orb_slam2_stereo" pkg="orb_slam2_ros"
+      type="orb_slam2_ros_stereo" args="
+          $(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt
+          $(find orb_slam2_ros)/orb_slam2/config/mynteye_s_stereo.yaml"
+      output="screen">
+       <remap from="image_left/image_color_rect" to="/mynteye/left_rect/image_rect" />
+       <remap from="image_right/image_color_rect" to="/mynteye/right_rect/image_rect" />
+
+       <param name="publish_pointcloud" type="bool" value="true" />
+       <param name="pointcloud_frame_id" type="string" value="map" />
+       <param name="camera_frame_id" type="string" value="camera_link" />
+  </node>
+</launch>
