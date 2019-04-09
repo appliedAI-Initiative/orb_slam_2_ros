@@ -8,6 +8,7 @@
        <remap from="/camera/depth_registered/image_raw" to="/camera/depth/image_rect_raw" />
 
        <param name="publish_pointcloud" type="bool" value="true" />
+       <param name="publish_pose" type="bool" value="true" />
        <param name="localize_only" type="bool" value="false" />
        <param name="reset_map" type="bool" value="false" />
        <param name="pointcloud_frame_id" type="string" value="map" />
