@@ -6,7 +6,7 @@ The original implementation can be found [here](https://github.com/raulmur/ORB_S
 This is the ROS implementation of the ORB-SLAM2 real-time SLAM library for **Monocular**, **Stereo** and **RGB-D** cameras that computes the camera trajectory and a sparse 3D reconstruction (in the stereo and RGB-D case with true scale). It is able to detect loops and relocalize the camera in real time. This implementation removes the Pangolin dependency, and the original viewer. All data I/O is handled via ROS topics. For vizualization you can use RViz. This repository is maintained by [Lennart Haller](http://lennarthaller.de) on behalf of [appliedAI](http://appliedai.de).
 ## Features
 - Full ROS compatibility
-- Supports the Intel RealSense R200 and D435 out of the box
+- Supports a lot of cameras out of the box, such as the Intel RealSense family. See the run section for a list
 - Data I/O via ROS topics
 - Parameters can be set with the rqt_reconfigure gui during runtime
 - Very quick startup through considerably sped up vocab file loading
@@ -49,35 +49,34 @@ if you use ORB-SLAM2 (Stereo or RGB-D) in an academic work, please cite:
       year={2017}
      }
 
-# 2. Prerequisites
+# 2. Building orb_slam2_ros
 We have tested the library in **Ubuntu 16.04** with **ROS Kinetic** and **Ubuntu 18.04** with **ROS Melodic**. A powerful computer (e.g. i7) will ensure real-time performance and provide more stable and accurate results.
+A C++11 compiler is needed.
 
-## C++11
-We use the new thread and chrono functionalities of C++11.
-
-## OpenCV
-We use [OpenCV](http://opencv.org) to manipulate images and features. OpenCV should be installed along with ROS.
-
-## Eigen3
-Required by g2o (see below). Download and install instructions can be found at: http://eigen.tuxfamily.org.
-Otherwise Eigen can be installed as a binary with:
-```
-sudo apt install libeigen3-dev
-```
-**Required at least 3.1.0**.
-
-## DBoW2 and g2o (Included in orb_slam2/Thirdparty)
-We use modified versions of the [DBoW2](https://github.com/dorian3d/DBoW2) library to perform place recognition and [g2o](https://github.com/RainerKuemmerle/g2o) library to perform non-linear optimizations. Both modified libraries (which are BSD) are included in the *Thirdparty* folder.
-
-## ROS / catkin
-This ROS node requires catkin_make_isolated or catkin build to build.
-
-# 3. Building the ORB-SLAM2 ROS node
 ## Getting the code
 Clone the repository into your catkin workspace:
 ```
 git clone https://github.com/appliedAI-Initiative/orb_slam_2_ros.git
 ```
+
+## ROS
+This ROS node requires catkin_make_isolated or catkin build to build. This package depends on a number of other ROS packages which ship with the default installation of ROS.
+If they are not installed use [rosdep](http://wiki.ros.org/rosdep) to install them. In your catkin folder run
+```
+sudo rosdep init
+rosdep update
+rosdep install --from-paths src --ignore-src -r -y
+```
+to install all dependencies for all packages. If you already initialized rosdep you get a warning which you can ignore.
+
+## Eigen3
+Required by g2o. Download and install instructions can be found [here](http://eigen.tuxfamily.org).
+Otherwise Eigen can be installed as a binary with:
+```
+sudo apt install libeigen3-dev
+```
+**Required at least Eigen 3.1.0**.
+
 ## Building
 To build the node run
 ```
@@ -85,7 +84,7 @@ catkin build
 ```
 in your catkin folder.
 
-# 4. Configuration
+# 3. Configuration
 ## Config file
 To run the algorithm expects both a vocabulary file (see the paper) and a **config file with the camera- and some hyper parameters**. The vocab file ships with this repository, together with config files for the Intel RealSense r200 camera. If you want to use any other camera you need to adjust the file (you can use one of the provided ones as a template). They are at orb_slam2/config.
 
@@ -95,6 +94,7 @@ There are three types of parameters right now: static- and dynamic ros parameter
 The static parameters are send to the ROS parameter server at startup and are not supposed to change. They are set in the launch files which are located at ros/launch. The parameters are:
 
 - **publish_pointcloud**: Bool. If the pointcloud containing all key points (the map) should be published.
+- **publish_pose**: Bool. If a PoseStamped message should be published. Even if this is false the tf will still be published.
 - **pointcloud_frame_id**: String. The Frame id of the Pointcloud/map.
 - **camera_frame_id**: String. The Frame id of the camera position.
 
@@ -111,6 +111,7 @@ Finally, the intrinsic camera calibration parameters along with some hyperparame
 ### Published topics
 The following topics are being published and subscribed to by the nodes:
 - All nodes publish (given the settings) a **PointCloud2** containing all key points of the map.
+- Also all nodes publish (given the settings) a **PoseStamped** with the current pose of the camera.
 - Live **image** from the camera containing the currently found key points and a status text.
 - A **tf** from the pointcloud frame id to the camera frame id (the position).
 
@@ -123,19 +124,20 @@ The following topics are being published and subscribed to by the nodes:
 - The stereo node subscribes to **image_left/image_color_rect** and
 - **image_right/image_color_rect** for corresponding images.
 
-# 5. Run
+# 4. Run
 After sourcing your setup bash using
 ```
 source devel/setup.bash
 ```
-you can run the the corresponding nodes with one of the following commands:
-```
-roslaunch orb_slam2_ros orb_slam2_r200_mono.launch
-roslaunch orb_slam2_ros orb_slam2_r200_stereo.launch
-roslaunch orb_slam2_ros orb_slam2_r200_rgbd.launch
-roslaunch orb_slam2_ros orb_slam2_d435_mono.launch
-roslaunch orb_slam2_ros orb_slam2_d435_rgbd.launch
-```
+## Suported cameras
+| Camera               | Mono                                                           | Stereo                                                           | RGBD                                                       |
+|----------------------|----------------------------------------------------------------|------------------------------------------------------------------|------------------------------------------------------------|
+| Intel RealSense r200 | ``` roslaunch orb_slam2_ros orb_slam2_r200_mono.launch ```     | ``` roslaunch orb_slam2_ros orb_slam2_r200_stereo.launch ```     | ``` roslaunch orb_slam2_ros orb_slam2_r200_rgbd.launch ``` |
+| Intel RealSense d435 | ``` roslaunch orb_slam2_ros orb_slam2_d435_mono.launch ```     | -                                                                | ``` roslaunch orb_slam2_ros orb_slam2_d435_rgbd.launch ``` |
+| Mynteye S            | ```roslaunch orb_slam2_ros orb_slam2_mynteye_s_mono.launch ``` | ```roslaunch orb_slam2_ros orb_slam2_mynteye_s_stereo.launch ``` | -                                                          |                     |                                                            |                                                              |                                                            |
+
+Use the command from the corresponding cell for your camera to launch orb_slam2_ros with the right parameters for your setup.
+
 # 5. FAQ
 Here are some answers to frequently asked questions.
 ### Using a new / different camera
