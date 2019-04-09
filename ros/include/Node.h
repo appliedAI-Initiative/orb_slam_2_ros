@@ -37,6 +37,7 @@
 #include <message_filters/sync_policies/approximate_time.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include "System.h"
 
@@ -57,6 +58,7 @@ class Node
   private:
     void PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points);
     void PublishPositionAsTransform (cv::Mat position);
+    void PublishPositionAsPoseStamped(cv::Mat position);
     void PublishRenderedImage (cv::Mat image);
     void ParamsChangedCallback(orb_slam2_ros::dynamic_reconfigureConfig &config, uint32_t level);
     tf::Transform TransformFromMat (cv::Mat position_mat);
@@ -66,6 +68,7 @@ class Node
 
     image_transport::Publisher rendered_image_publisher_;
     ros::Publisher map_points_publisher_;
+    ros::Publisher pose_publisher_;
 
     std::string name_of_node_;
     ros::NodeHandle node_handle_;
@@ -73,6 +76,7 @@ class Node
     std::string map_frame_id_param_;
     std::string camera_frame_id_param_;
     bool publish_pointcloud_param_;
+    bool publish_pose_param_;
     int min_observations_per_point_;
 };
 

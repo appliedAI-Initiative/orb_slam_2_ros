@@ -10,6 +10,7 @@ Node::Node (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transp
 
   //static parameters
   node_handle_.param(name_of_node_+"/publish_pointcloud", publish_pointcloud_param_, true);
+  node_handle_.param(name_of_node_+"/publish_pose", publish_pose_param_, true);
   node_handle_.param<std::string>(name_of_node_+"/pointcloud_frame_id", map_frame_id_param_, "map");
   node_handle_.param<std::string>(name_of_node_+"/camera_frame_id", camera_frame_id_param_, "camera_link");
 
@@ -21,6 +22,11 @@ Node::Node (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transp
   rendered_image_publisher_ = image_transport.advertise (name_of_node_+"/debug_image", 1);
   if (publish_pointcloud_param_) {
     map_points_publisher_ = node_handle_.advertise<sensor_msgs::PointCloud2> (name_of_node_+"/map_points", 1);
+  }
+
+  // Enable publishing camera's pose as PoseStamped message
+  if (publish_pose_param_) {
+    pose_publisher_ = node_handle_.advertise<geometry_msgs::PoseStamped> (name_of_node_+"/pose", 1);
   }
 }
 
@@ -35,6 +41,10 @@ void Node::Update () {
 
   if (!position.empty()) {
     PublishPositionAsTransform (position);
+
+    if (publish_pose_param_) {
+      PublishPositionAsPoseStamped (position);
+    }
   }
 
   PublishRenderedImage (orb_slam_->DrawCurrentFrame());
@@ -56,6 +66,14 @@ void Node::PublishPositionAsTransform (cv::Mat position) {
   tf::Transform transform = TransformFromMat (position);
   static tf::TransformBroadcaster tf_broadcaster;
   tf_broadcaster.sendTransform(tf::StampedTransform(transform, current_frame_time_, map_frame_id_param_, camera_frame_id_param_));
+}
+
+void Node::PublishPositionAsPoseStamped (cv::Mat position) {
+  tf::Transform grasp_tf = TransformFromMat (position);
+  tf::Stamped<tf::Pose> grasp_tf_pose(grasp_tf, current_frame_time_, map_frame_id_param_);
+  geometry_msgs::PoseStamped pose_msg;
+  tf::poseStampedTFToMsg (grasp_tf_pose, pose_msg);
+  pose_publisher_.publish(pose_msg);
 }
 
 
