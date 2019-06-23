@@ -22,6 +22,8 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
+// for map file io
+#include <fstream>
 #include<string>
 #include<thread>
 #include <unistd.h>
@@ -34,6 +36,7 @@
 #include "LoopClosing.h"
 #include "KeyFrameDatabase.h"
 #include "ORBVocabulary.h"
+#include "BoostArchiver.h"
 
 namespace ORB_SLAM2
 {
@@ -125,7 +128,13 @@ public:
 
     std::vector<MapPoint*> GetAllMapPoints();
 
+    bool save_map;
+
 private:
+    // This saves/loads map.
+    void SaveMap(const string &filename);
+    bool LoadMap(const string &filename);
+
     // This stops local mapping thread (map building) and performs only camera tracking.
     void ActivateLocalizationMode();
 
@@ -145,6 +154,8 @@ private:
 
     // Map structure that stores the pointers to all KeyFrames and MapPoints.
     Map* mpMap;
+
+    string mapfile;
 
     // Tracker. It receives a frame and computes the associated camera pose.
     // It also decides when to insert a new keyframe, create some new MapPoints and

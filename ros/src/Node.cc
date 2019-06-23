@@ -9,6 +9,7 @@ Node::Node (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transp
   min_observations_per_point_ = 2;
 
   //static parameters
+  node_handle_.param(name_of_node_+"/save_map", save_map_, false);
   node_handle_.param(name_of_node_+"/publish_pointcloud", publish_pointcloud_param_, true);
   node_handle_.param(name_of_node_+"/publish_pose", publish_pose_param_, true);
   node_handle_.param<std::string>(name_of_node_+"/pointcloud_frame_id", map_frame_id_param_, "map");
@@ -27,6 +28,11 @@ Node::Node (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transp
   // Enable publishing camera's pose as PoseStamped message
   if (publish_pose_param_) {
     pose_publisher_ = node_handle_.advertise<geometry_msgs::PoseStamped> (name_of_node_+"/pose", 1);
+  }
+
+  // Set saving map if requested.
+  if (save_map_) {
+    orb_slam_->save_map = save_map_;
   }
 }
 

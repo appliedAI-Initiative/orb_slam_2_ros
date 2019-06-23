@@ -37,6 +37,8 @@ endif()
 
 find_package(Eigen3 3.1.0 REQUIRED)
 
+find_library(BOOST_SERIALIZATION boost_serialization)
+
 set (DYNAMIC_RECONFIGURE_PATH ros/config/dynamic_reconfigure.cfg)
 execute_process(COMMAND chmod a+x ${DYNAMIC_RECONFIGURE_PATH}
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
@@ -51,6 +53,7 @@ generate_dynamic_reconfigure_options(
 set(LIBS_ORBSLAM
 ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
+${BOOST_SERIALIZATION}
 ${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/DBoW2/lib/libDBoW2.so
 ${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/g2o/lib/libg2o.so
 )

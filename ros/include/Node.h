@@ -75,6 +75,7 @@ class Node
 
     std::string map_frame_id_param_;
     std::string camera_frame_id_param_;
+    bool save_map_;
     bool publish_pointcloud_param_;
     bool publish_pose_param_;
     int min_observations_per_point_;
