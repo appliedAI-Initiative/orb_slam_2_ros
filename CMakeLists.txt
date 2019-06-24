@@ -104,6 +104,14 @@ target_link_libraries(${PROJECT_NAME}
 ${LIBS_ORBSLAM}
 )
 
+# map serialization addition - library boost serialization 
+message(STATUS "Compile With map save/load function")
+find_library(BOOST_SERIALIZATION boost_serialization)
+if (NOT BOOST_SERIALIZATION)
+    message(FATAL_ERROR "Can't find libboost_serialization")
+endif()
+target_link_libraries(${PROJECT_NAME} ${BOOST_SERIALIZATION})
+
 add_executable (${PROJECT_NAME}_mono
 ros/src/MonoNode.cc
 ros/src/Node.cc
