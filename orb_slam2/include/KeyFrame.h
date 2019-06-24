@@ -28,6 +28,7 @@
 #include "ORBextractor.h"
 #include "Frame.h"
 #include "KeyFrameDatabase.h"
+#include "BoostArchiver.h"
 
 #include <mutex>
 
@@ -231,6 +232,17 @@ protected:
     std::mutex mMutexPose;
     std::mutex mMutexConnections;
     std::mutex mMutexFeatures;
+
+// map serialization addition
+public:
+    KeyFrame(); // Default constructor for serialization, need to deal with const member
+    void SetORBvocabulary(ORBVocabulary *porbv) {mpORBvocabulary=porbv;}
+private:
+    // serialize is recommended to be private
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive &ar, const unsigned int version);
+
 };
 
 } //namespace ORB_SLAM
