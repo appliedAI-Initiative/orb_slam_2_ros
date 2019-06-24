@@ -11,19 +11,16 @@
        <param name="publish_pointcloud" type="bool" value="true" />
        <param name="publish_pose" type="bool" value="true" />
       
+       <!-- map serialization addition -->
        <param name="localize_only" type="bool" value="false" />
        <param name="save_map" type="bool" value="true" />
        <param name="load_map" type="bool" value="false" />
-       <param name="map_file" type="string" value="/home/brahim/Work/projects/orb_slam_2_test/catkin_ws/res/imu_cam_2019-01-14-12-23-14.map.bin" />
+       <param name="map_file" type="string" value="map.bin" />
 
        <param name="reset_map" type="bool" value="false" />
        <param name="pointcloud_frame_id" type="string" value="map" />
        <param name="camera_frame_id" type="string" value="camera_link" />
        <param name="min_num_kf_in_map" type="int" value="5" />
   </node>
-
-  <node name="playbag" pkg="rosbag" type="play" args="--clock /home/brahim/Work/datasets/building_nantes/imu_cam_2019-01-14-12-23-14.bag" required="true" />
-
-  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find orb_slam2_ros)/ros/config/rviz_config.rviz" />
 
 </launch>
