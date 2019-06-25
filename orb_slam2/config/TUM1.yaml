@@ -50,4 +50,11 @@ ORBextractor.nLevels: 8
 ORBextractor.iniThFAST: 20
 ORBextractor.minThFAST: 7
 
+#--------------------------------------------------------------------------------------------
+# Map Parameters
+#--------------------------------------------------------------------------------------------
+
+# Map: Filename to save or load map.
+# Map loading will happen if file exists. Map saving disabled by default
+# and can be enabled by setting ROS parameter "save_map" to true.
 Map.mapfile: map.bin
