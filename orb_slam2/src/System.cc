@@ -28,9 +28,10 @@
 namespace ORB_SLAM2
 {
 
-System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor
-               ):mSensor(sensor), mbReset(false),mbActivateLocalizationMode(false),
-        mbDeactivateLocalizationMode(false)
+System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
+               const std::string & map_file, bool save_map, bool load_map): // map serialization addition
+               mSensor(sensor), mbReset(false),mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false),
+               map_file(map_file), save_map(save_map), load_map(load_map)
 {
     // Output welcome message
     cout << endl <<
@@ -83,11 +84,21 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     cout << "Vocabulary loaded!" << endl << endl;
 
-    //Create KeyFrame Database
-    mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
-
-    //Create the Map
-    mpMap = new Map();
+    // begin map serialization addition
+    // load serialized map
+    if (load_map && LoadMap(map_file)) {
+        currently_localizing_only_ = true;
+        ActivateLocalizationMode();
+        std::cout << "Using loaded map with " << mpMap->MapPointsInMap() << " points\n" << std::endl;
+    }
+    else {
+        //Create KeyFrame Database
+        mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
+        //Create the Map
+        mpMap = new Map();
+        currently_localizing_only_ = false;
+    }
+    // end map serialization addition
 
     //Create Drawers. These are used by the Viewer
     mpFrameDrawer = new FrameDrawer(mpMap);
@@ -510,6 +521,64 @@ void System::EnableLocalizationOnly (bool localize_only) {
       DeactivateLocalizationMode();
     }
   }
+
+  std::cout << "Enable localization only: " << (localize_only?"true":"false") << std::endl;
+}
+
+
+// map serialization addition
+void System::SaveMap(const string &filename) {
+    
+    unique_lock<mutex>MapPointGlobal(MapPoint::mGlobalMutex);
+    std::ofstream out(filename, std::ios_base::binary);
+    if (!out) {
+        std::cerr << "cannot write to map file: " << map_file << std::endl;
+        exit(-1);
+    }
+
+    std::cout << "saving map file: " << map_file << std::flush;
+    boost::archive::binary_oarchive oa(out, boost::archive::no_header);
+    oa << mpMap;
+    oa << mpKeyFrameDatabase;
+    std::cout << " ... done" << std::endl;
+    out.close();
+}
+
+bool System::LoadMap(const string &filename) {
+    
+    unique_lock<mutex>MapPointGlobal(MapPoint::mGlobalMutex);
+    std::ifstream in(filename, std::ios_base::binary);
+    if (!in) {
+        cerr << "Cannot open map file: " << map_file << " , you need create it first!" << std::endl;
+        return false;
+    }
+
+    std::cout << "Loading map file: " << map_file << std::flush;
+    boost::archive::binary_iarchive ia(in, boost::archive::no_header);
+    ia >> mpMap;
+    ia >> mpKeyFrameDatabase;
+    mpKeyFrameDatabase->SetORBvocabulary(mpVocabulary);
+    std::cout << " ... done" << std::endl;
+
+    std::cout << "Map reconstructing" << flush;
+    vector<ORB_SLAM2::KeyFrame*> vpKFS = mpMap->GetAllKeyFrames();
+    unsigned long mnFrameId = 0;
+    for (auto it:vpKFS) {
+
+        it->SetORBvocabulary(mpVocabulary);
+        it->ComputeBoW();
+        
+        if (it->mnFrameId > mnFrameId) {
+            mnFrameId = it->mnFrameId;
+        }
+    }
+
+    Frame::nNextId = mnFrameId;
+    
+    std::cout << " ... done" << std::endl;
+    in.close();
+    
+    return true;
 }
 
 } //namespace ORB_SLAM

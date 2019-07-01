@@ -1,0 +1,26 @@
+<launch>
+  <param name="/use_sim_time" value="true" />
+  <node name="orb_slam2_rgbd" pkg="orb_slam2_ros"
+      type="orb_slam2_ros_rgbd" args="
+          $(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt
+          $(find orb_slam2_ros)/orb_slam2/config/RealSenseD435RGBD.yaml"
+      output="screen">
+       <remap from="/camera/rgb/image_raw" to="/camera/color/image_raw" />
+       <remap from="/camera/depth_registered/image_raw" to="/camera/aligned_depth_to_color/image_raw" />
+
+       <param name="publish_pointcloud" type="bool" value="true" />
+       <param name="publish_pose" type="bool" value="true" />
+      
+       <!-- map serialization addition -->
+       <param name="localize_only" type="bool" value="false" />
+       <param name="save_map" type="bool" value="true" />
+       <param name="load_map" type="bool" value="false" />
+       <param name="map_file" type="string" value="map.bin" />
+
+       <param name="reset_map" type="bool" value="false" />
+       <param name="pointcloud_frame_id" type="string" value="map" />
+       <param name="camera_frame_id" type="string" value="camera_link" />
+       <param name="min_num_kf_in_map" type="int" value="5" />
+  </node>
+
+</launch>
