@@ -40,7 +40,7 @@
 class MonoNode : public Node
 {
   public:
-    MonoNode (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
+    MonoNode (const ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
     ~MonoNode ();
     void ImageCallback (const sensor_msgs::ImageConstPtr& msg);
 

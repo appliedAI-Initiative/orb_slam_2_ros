@@ -46,7 +46,7 @@
 class Node
 {
   public:
-    Node (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
+    Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
     ~Node ();
 
   protected:
@@ -75,6 +75,11 @@ class Node
 
     std::string map_frame_id_param_;
     std::string camera_frame_id_param_;
+    std::string map_file_name_param_;
+    std::string voc_file_name_param_;
+    std::string settings_file_name_param_;
+    bool save_map_param_;
+    bool load_map_param_;
     bool publish_pointcloud_param_;
     bool publish_pose_param_;
     int min_observations_per_point_;

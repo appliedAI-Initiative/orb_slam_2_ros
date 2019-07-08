@@ -9,15 +9,10 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "Stereo");
     ros::start();
 
-    if(argc != 3)
-    {
-        ROS_ERROR ("Path to vocabulary and path to settings need to be set.");
-        ros::shutdown();
-        return 1;
+    if(argc > 1) {
+        ROS_WARN ("Arguments supplied via command line are neglected.");
     }
 
-    // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::STEREO);
     ros::NodeHandle node_handle;
     image_transport::ImageTransport image_transport (node_handle);
 
@@ -27,21 +22,18 @@ int main(int argc, char **argv)
     message_filters::Synchronizer<sync_pol> sync(sync_pol(10), left_sub,right_sub);
 
     // initilaize
-    StereoNode node (&SLAM, node_handle, image_transport);
+    StereoNode node (ORB_SLAM2::System::STEREO, node_handle, image_transport);
 
     // register callbacks
     sync.registerCallback(boost::bind(&StereoNode::ImageCallback, &node,_1,_2));
 
     ros::spin();
 
-    // Stop all threads
-    SLAM.Shutdown();
-
     return 0;
 }
 
 
-StereoNode::StereoNode (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) : Node (pSLAM, node_handle, image_transport) {
+StereoNode::StereoNode (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) : Node (sensor, node_handle, image_transport) {
 }
 
 
