@@ -2,17 +2,21 @@
 
 #include <iostream>
 
-Node::Node (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) {
+Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) {
   name_of_node_ = ros::this_node::getName();
-  orb_slam_ = pSLAM;
   node_handle_ = node_handle;
   min_observations_per_point_ = 2;
 
   //static parameters
-  node_handle_.param(name_of_node_+"/publish_pointcloud", publish_pointcloud_param_, true);
-  node_handle_.param(name_of_node_+"/publish_pose", publish_pose_param_, true);
-  node_handle_.param<std::string>(name_of_node_+"/pointcloud_frame_id", map_frame_id_param_, "map");
-  node_handle_.param<std::string>(name_of_node_+"/camera_frame_id", camera_frame_id_param_, "camera_link");
+  node_handle_.param(name_of_node_+ "/publish_pointcloud", publish_pointcloud_param_, true);
+  node_handle_.param(name_of_node_+ "/publish_pose", publish_pose_param_, true);
+  node_handle_.param<std::string>(name_of_node_+ "/pointcloud_frame_id", map_frame_id_param_, "map");
+  node_handle_.param<std::string>(name_of_node_+ "/camera_frame_id", camera_frame_id_param_, "camera_link");
+  node_handle_.param<std::string>(name_of_node_ + "/map_file", map_file_name_param_, "map.bin");
+  node_handle_.param<std::string>(name_of_node_ + "/voc_file", voc_file_name_param_, "orb_slam2/Vocabulary/ORBvoc.txt");
+  node_handle_.param<std::string>(name_of_node_ + "/settings_file", settings_file_name_param_, "file_not_set");
+  node_handle_.param(name_of_node_ + "/save_map", save_map_param_, false);
+  node_handle_.param(name_of_node_ + "/load_map", load_map_param_, false);
 
   //Setup dynamic reconfigure
   dynamic_reconfigure::Server<orb_slam2_ros::dynamic_reconfigureConfig>::CallbackType dynamic_param_callback;
@@ -28,11 +32,24 @@ Node::Node (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transp
   if (publish_pose_param_) {
     pose_publisher_ = node_handle_.advertise<geometry_msgs::PoseStamped> (name_of_node_+"/pose", 1);
   }
+
+  orb_slam_ = new ORB_SLAM2::System (voc_file_name_param_, settings_file_name_param_, sensor, map_file_name_param_, save_map_param_, load_map_param_);
+
 }
 
 
 Node::~Node () {
+  // Stop all threads
+  orb_slam_->Shutdown();
 
+  // Save camera trajectory
+  orb_slam_->SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
+
+  // Save map
+  if(save_map_param_) {
+    orb_slam_->SaveMap(map_file_name_param_);
+  }
+  delete orb_slam_;
 }
 
 

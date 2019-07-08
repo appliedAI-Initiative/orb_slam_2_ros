@@ -28,7 +28,7 @@
 namespace ORB_SLAM2
 {
 
-System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
+System::System(const string strVocFile, const string strSettingsFile, const eSensor sensor,
                const std::string & map_file, bool save_map, bool load_map): // map serialization addition
                mSensor(sensor), mbReset(false),mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false),
                map_file(map_file), save_map(save_map), load_map(load_map)
@@ -69,13 +69,13 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     if(!bVocLoad)
     {
         cerr << "Cannot find binary file for vocabulary. " << endl;
-        cerr << "Falied to open at: " << strVocFile+".bin" << endl;
+        cerr << "Failed to open at: " << strVocFile+".bin" << endl;
         cerr << "Trying to open the text file. This could take a while..." << endl;
         bool bVocLoad2 = mpVocabulary->loadFromTextFile(strVocFile);
         if(!bVocLoad2)
         {
             cerr << "Wrong path to vocabulary. " << endl;
-            cerr << "Falied to open at: " << strVocFile << endl;
+            cerr << "Failed to open at: " << strVocFile << endl;
             exit(-1);
         }
         cerr << "Saving the vocabulary to binary for the next time to " << strVocFile+".bin" << endl;
@@ -87,8 +87,6 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     // begin map serialization addition
     // load serialized map
     if (load_map && LoadMap(map_file)) {
-        currently_localizing_only_ = true;
-        ActivateLocalizationMode();
         std::cout << "Using loaded map with " << mpMap->MapPointsInMap() << " points\n" << std::endl;
     }
     else {
@@ -96,7 +94,6 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
         //Create the Map
         mpMap = new Map();
-        currently_localizing_only_ = false;
     }
     // end map serialization addition
 
@@ -502,12 +499,14 @@ std::vector<MapPoint*> System::GetAllMapPoints() {
 
 void System::ActivateLocalizationMode()
 {
+    currently_localizing_only_ = true;
     unique_lock<mutex> lock(mMutexMode);
     mbActivateLocalizationMode = true;
 }
 
 void System::DeactivateLocalizationMode()
 {
+    currently_localizing_only_ = false;
     unique_lock<mutex> lock(mMutexMode);
     mbDeactivateLocalizationMode = true;
 }
