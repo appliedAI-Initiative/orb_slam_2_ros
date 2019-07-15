@@ -129,7 +129,7 @@ The following topics are being published and subscribed to by the nodes:
 - The stereo node subscribes to **image_left/image_color_rect** and
 - **image_right/image_color_rect** for corresponding images.
 
-#4. Services
+# 4. Services
 All nodes offer the possibility to save the map via the service **node_type/save_map**.
 So the save_map services are:
 - /orb_slam2_rgbd/save_map
