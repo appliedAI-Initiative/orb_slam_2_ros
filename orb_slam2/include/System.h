@@ -57,7 +57,7 @@ public:
 
     // Initialize the SLAM system. It launches the Local Mapping, Loop Closing and Viewer threads.
     System(const string strVocFile, const string strSettingsFile, const eSensor sensor,
-           const std::string & map_file = "", bool save_map = false, bool load_map = false); // map serialization addition
+           const std::string & map_file = "", bool load_map = false); // map serialization addition
 
     // Proccess the given stereo frame. Images must be synchronized and rectified.
     // Input images: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
@@ -114,6 +114,8 @@ public:
 
     void SetMinimumKeyFrames (int min_num_kf);
 
+    bool SaveMap(const string &filename);
+
     cv::Mat GetCurrentPosition ();
 
     // Information from most recent processed frame
@@ -133,7 +135,13 @@ private:
     // This resumes local mapping thread and performs SLAM again.
     void DeactivateLocalizationMode();
 
+    bool LoadMap(const string &filename);
+
     bool currently_localizing_only_;
+
+    bool load_map;
+
+    std::string map_file;
 
     // Input sensor
     eSensor mSensor;
@@ -183,18 +191,6 @@ private:
 
     // Current position
     cv::Mat current_position_;
-
-// map serialization addition
-private:
-    // Save/Load functions
-    bool save_map;
-    bool load_map;
-    std::string map_file;
-    bool LoadMap(const string &filename);
-public:
-    void SaveMap(const string &filename);
-
-
 };
 
 }// namespace ORB_SLAM

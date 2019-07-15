@@ -15,11 +15,11 @@ Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, ima
   node_handle_.param<std::string>(name_of_node_ + "/map_file", map_file_name_param_, "map.bin");
   node_handle_.param<std::string>(name_of_node_ + "/voc_file", voc_file_name_param_, "file_not_set");
   node_handle_.param<std::string>(name_of_node_ + "/settings_file", settings_file_name_param_, "file_not_set");
-  node_handle_.param(name_of_node_ + "/save_map", save_map_param_, false);
   node_handle_.param(name_of_node_ + "/load_map", load_map_param_, false);
 
+  orb_slam_ = new ORB_SLAM2::System (voc_file_name_param_, settings_file_name_param_, sensor, map_file_name_param_, load_map_param_);
 
-  orb_slam_ = new ORB_SLAM2::System (voc_file_name_param_, settings_file_name_param_, sensor, map_file_name_param_, save_map_param_, load_map_param_);
+  service_server_ = node_handle_.advertiseService(name_of_node_+"/save_map", &Node::SaveMapSrv, this);
 
   //Setup dynamic reconfigure
   dynamic_reconfigure::Server<orb_slam2_ros::dynamic_reconfigureConfig>::CallbackType dynamic_param_callback;
@@ -46,10 +46,6 @@ Node::~Node () {
   // Save camera trajectory
   orb_slam_->SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
 
-  // Save map
-  if(save_map_param_) {
-    orb_slam_->SaveMap(map_file_name_param_);
-  }
   delete orb_slam_;
 }
 
@@ -196,4 +192,15 @@ void Node::ParamsChangedCallback(orb_slam2_ros::dynamic_reconfigureConfig &confi
   }
 
   orb_slam_->SetMinimumKeyFrames (config.min_num_kf_in_map);
+}
+
+
+bool Node::SaveMapSrv (orb_slam2_ros::SaveMap::Request &req, orb_slam2_ros::SaveMap::Response &res) {
+  res.success = orb_slam_->SaveMap(map_file_name_param_);
+
+  if (res.success) {
+    ROS_INFO ("Map was saved.");
+  }
+
+  return res.succes;
 }

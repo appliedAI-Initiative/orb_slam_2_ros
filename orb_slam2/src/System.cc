@@ -29,9 +29,9 @@ namespace ORB_SLAM2
 {
 
 System::System(const string strVocFile, const string strSettingsFile, const eSensor sensor,
-               const std::string & map_file, bool save_map, bool load_map): // map serialization addition
+               const std::string & map_file, bool load_map): // map serialization addition
                mSensor(sensor), mbReset(false),mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false),
-               map_file(map_file), save_map(save_map), load_map(load_map)
+               map_file(map_file), load_map(load_map)
 {
     // Output welcome message
     cout << endl <<
@@ -526,21 +526,32 @@ void System::EnableLocalizationOnly (bool localize_only) {
 
 
 // map serialization addition
-void System::SaveMap(const string &filename) {
+bool System::SaveMap(const string &filename) {
     
     unique_lock<mutex>MapPointGlobal(MapPoint::mGlobalMutex);
     std::ofstream out(filename, std::ios_base::binary);
     if (!out) {
         std::cerr << "cannot write to map file: " << map_file << std::endl;
-        exit(-1);
+        return false;
     }
 
-    std::cout << "saving map file: " << map_file << std::flush;
-    boost::archive::binary_oarchive oa(out, boost::archive::no_header);
-    oa << mpMap;
-    oa << mpKeyFrameDatabase;
-    std::cout << " ... done" << std::endl;
-    out.close();
+    try {
+        std::cout << "saving map file: " << map_file << std::flush;
+        boost::archive::binary_oarchive oa(out, boost::archive::no_header);
+        oa << mpMap;
+        oa << mpKeyFrameDatabase;
+        std::cout << " ... done" << std::endl;
+        out.close();
+
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        return false;
+    } catch (...) {
+        std::cerr << "Unknows exeption" << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 bool System::LoadMap(const string &filename) {

@@ -25,6 +25,7 @@ image_transport
 tf
 sensor_msgs
 dynamic_reconfigure
+message_generation
 )
 
 find_package(OpenCV 3.0 QUIET)
@@ -61,8 +62,18 @@ ${OpenCV_LIBS}
 ${catkin_LIBRARIES}
 )
 
+add_service_files(
+        FILES
+        SaveMap.srv
+)
+
+generate_messages(
+        DEPENDENCIES
+        std_msgs
+)
+
 catkin_package (
-  CATKIN_DEPENDS roscpp rospy std_msgs cv_bridge image_transport tf sensor_msgs dynamic_reconfigure
+  CATKIN_DEPENDS roscpp rospy std_msgs cv_bridge image_transport tf sensor_msgs dynamic_reconfigure message_runtime
   LIBRARIES {PROJECT_NAME} libDBoW2 libg2o
 )
 

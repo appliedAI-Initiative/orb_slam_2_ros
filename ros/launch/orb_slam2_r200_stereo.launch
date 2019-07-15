@@ -11,7 +11,6 @@
        <param name="reset_map" type="bool" value="false" />
 
        <!-- static parameters -->
-       <param name="save_map" type="bool" value="true" />
        <param name="load_map" type="bool" value="false" />
        <param name="map_file" type="string" value="map.bin" />
        <param name="settings_file" type="string" value="$(find orb_slam2_ros)/orb_slam2/config/RealSenseR200Stereo.yamll" />
