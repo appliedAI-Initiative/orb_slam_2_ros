@@ -32,6 +32,8 @@
 #include <dynamic_reconfigure/server.h>
 #include <orb_slam2_ros/dynamic_reconfigureConfig.h>
 
+#include "orb_slam2_ros/SaveMap.h"
+
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
@@ -61,6 +63,8 @@ class Node
     void PublishPositionAsPoseStamped(cv::Mat position);
     void PublishRenderedImage (cv::Mat image);
     void ParamsChangedCallback(orb_slam2_ros::dynamic_reconfigureConfig &config, uint32_t level);
+    bool SaveMapSrv (orb_slam2_ros::SaveMap::Request &req, orb_slam2_ros::SaveMap::Response &res);
+
     tf::Transform TransformFromMat (cv::Mat position_mat);
     sensor_msgs::PointCloud2 MapPointsToPointCloud (std::vector<ORB_SLAM2::MapPoint*> map_points);
 
@@ -70,6 +74,8 @@ class Node
     ros::Publisher map_points_publisher_;
     ros::Publisher pose_publisher_;
 
+    ros::ServiceServer service_server_;
+
     std::string name_of_node_;
     ros::NodeHandle node_handle_;
 
@@ -78,7 +84,6 @@ class Node
     std::string map_file_name_param_;
     std::string voc_file_name_param_;
     std::string settings_file_name_param_;
-    bool save_map_param_;
     bool load_map_param_;
     bool publish_pointcloud_param_;
     bool publish_pose_param_;
