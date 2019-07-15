@@ -21,16 +21,8 @@ int main(int argc, char **argv)
     ros::NodeHandle node_handle;
     image_transport::ImageTransport image_transport (node_handle);
 
-    message_filters::Subscriber<sensor_msgs::Image> left_sub(node_handle, "image_left/image_color_rect", 1);
-    message_filters::Subscriber<sensor_msgs::Image> right_sub(node_handle, "image_right/image_color_rect", 1);
-    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
-    message_filters::Synchronizer<sync_pol> sync(sync_pol(10), left_sub,right_sub);
-
     // initilaize
     StereoNode node (&SLAM, node_handle, image_transport);
-
-    // register callbacks
-    sync.registerCallback(boost::bind(&StereoNode::ImageCallback, &node,_1,_2));
 
     ros::spin();
 
@@ -42,10 +34,18 @@ int main(int argc, char **argv)
 
 
 StereoNode::StereoNode (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) : Node (pSLAM, node_handle, image_transport) {
+    left_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (node_handle, "image_left/image_color_rect", 1);
+    right_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (node_handle, "image_right/image_color_rect", 1);
+
+    sync_ = new message_filters::Synchronizer<sync_pol> (sync_pol(10), *left_sub_, *right_sub_);
+    sync_->registerCallback(boost::bind(&StereoNode::ImageCallback, this, _1, _2));
 }
 
 
 StereoNode::~StereoNode () {
+    delete left_sub_;
+    delete right_sub_;
+    delete sync_;
 }
 
 
