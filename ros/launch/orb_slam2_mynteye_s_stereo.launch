@@ -1,15 +1,24 @@
 <launch>
   <node name="orb_slam2_stereo" pkg="orb_slam2_ros"
-      type="orb_slam2_ros_stereo" args="
-          $(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt
-          $(find orb_slam2_ros)/orb_slam2/config/mynteye_s_stereo.yaml"
-      output="screen">
+      type="orb_slam2_ros_stereo" output="screen">
+
        <remap from="image_left/image_color_rect" to="/mynteye/left_rect/image_rect" />
        <remap from="image_right/image_color_rect" to="/mynteye/right_rect/image_rect" />
 
        <param name="publish_pointcloud" type="bool" value="true" />
        <param name="publish_pose" type="bool" value="true" />
+       <param name="localize_only" type="bool" value="false" />
+       <param name="reset_map" type="bool" value="false" />
+
+       <!-- static parameters -->
+       <param name="save_map" type="bool" value="true" />
+       <param name="load_map" type="bool" value="false" />
+       <param name="map_file" type="string" value="map.bin" />
+       <param name="settings_file" type="string" value="$(find orb_slam2_ros)/orb_slam2/config/mynteye_s_stereo.yaml" />
+       <param name="voc_file" type="string" value="$(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt" />
+
        <param name="pointcloud_frame_id" type="string" value="map" />
        <param name="camera_frame_id" type="string" value="camera_link" />
+       <param name="min_num_kf_in_map" type="int" value="5" />
   </node>
 </launch>
