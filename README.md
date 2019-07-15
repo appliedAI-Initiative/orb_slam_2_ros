@@ -130,11 +130,11 @@ The following topics are being published and subscribed to by the nodes:
 - **image_right/image_color_rect** for corresponding images.
 
 # 4. Services
-All nodes offer the possibility to save the map via the service **node_type/save_map**.
+All nodes offer the possibility to save the map via the service node_type/save_map.
 So the save_map services are:
-- /orb_slam2_rgbd/save_map
-- /orb_slam2_mono/save_map
-- /orb_slam2_stereo/save_map
+- **/orb_slam2_rgbd/save_map**
+- **/orb_slam2_mono/save_map**
+- **/orb_slam2_stereo/save_map**
 
 # 5. Run
 After sourcing your setup bash using
