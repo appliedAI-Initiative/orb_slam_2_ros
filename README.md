@@ -10,6 +10,7 @@ This is the ROS implementation of the ORB-SLAM2 real-time SLAM library for **Mon
 - Data I/O via ROS topics
 - Parameters can be set with the rqt_reconfigure gui during runtime
 - Very quick startup through considerably sped up vocab file loading
+- Full Map save and load functionality
 
 ### Related Publications:
 [Monocular] Raúl Mur-Artal, J. M. M. Montiel and Juan D. Tardós. **ORB-SLAM: A Versatile and Accurate Monocular SLAM System**. *IEEE Transactions on Robotics,* vol. 31, no. 5, pp. 1147-1163, 2015. (**2015 IEEE Transactions on Robotics Best Paper Award**). **[PDF](http://webdiis.unizar.es/~raulmur/MurMontielTardosTRO15.pdf)**.
@@ -86,13 +87,17 @@ in your catkin folder.
 
 # 3. Configuration
 ## Config file
-To run the algorithm expects both a vocabulary file (see the paper) and a **config file with the camera- and some hyper parameters**. The vocab file ships with this repository, together with config files for the Intel RealSense r200 camera. If you want to use any other camera you need to adjust the file (you can use one of the provided ones as a template). They are at orb_slam2/config.
+To run the algorithm expects both a vocabulary file (see the paper) and a **config file with the camera- and some hyper parameters**. The vocab file ships with this repository, together with config files for multiple cameras. If you want to use any other camera you need to adjust this file (you can use one of the provided ones as a template). They are at orb_slam2/config.
 
-## ROS parameters and topics
+## ROS parameters, topics and services
 ### Parameters
 There are three types of parameters right now: static- and dynamic ros parameters and camera settings from the config file.
 The static parameters are send to the ROS parameter server at startup and are not supposed to change. They are set in the launch files which are located at ros/launch. The parameters are:
 
+- **load_map**: Bool. If set to true, the node will try to load the map provided with map_file at startup.
+- **map_file**: String. The name of the file the map is saved at.
+- **settings_file**: String. The location of config file mentioned above.
+- **voc_file**: String. The location of config vocanulary file mentioned above.
 - **publish_pointcloud**: Bool. If the pointcloud containing all key points (the map) should be published.
 - **publish_pose**: Bool. If a PoseStamped message should be published. Even if this is false the tf will still be published.
 - **pointcloud_frame_id**: String. The Frame id of the Pointcloud/map.
@@ -124,7 +129,14 @@ The following topics are being published and subscribed to by the nodes:
 - The stereo node subscribes to **image_left/image_color_rect** and
 - **image_right/image_color_rect** for corresponding images.
 
-# 4. Run
+#4. Services
+All nodes offer the possibility to save the map via the service **node_type/save_map**.
+So the save_map services are:
+- /orb_slam2_rgbd/save_map
+- /orb_slam2_mono/save_map
+- /orb_slam2_stereo/save_map
+
+# 5. Run
 After sourcing your setup bash using
 ```
 source devel/setup.bash
@@ -138,8 +150,17 @@ source devel/setup.bash
 
 Use the command from the corresponding cell for your camera to launch orb_slam2_ros with the right parameters for your setup.
 
-# 5. FAQ
+# 6. FAQ
 Here are some answers to frequently asked questions.
+### How to save the map
+To save the map with a simple command line command run one the commands (matching to your node running):
+```
+rosservice call /orb_slam2_rgbd/save_map
+rosservice call /orb_slam2_stereo/save_map
+rosservice call /orb_slam2_mono/save_map
+```
+The file will be saved at ROS_HOME which is by default ~/.ros
+
 ### Using a new / different camera
 You can use this SLAM with almost any mono, stereo or RGBD cam you want.
 There are two files which need to be adjusted for a new camera:
