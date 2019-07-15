@@ -14,8 +14,8 @@
        <param name="save_map" type="bool" value="true" />
        <param name="load_map" type="bool" value="false" />
        <param name="map_file" type="string" value="map.bin" />
-       <param name="settings_file" type="string" value="orb_slam2/config/RealSenseD435RGBD.yaml" />
-       <param name="voc_file" type="string" value="orb_slam2/Vocabulary/ORBvoc.txt" />
+       <param name="settings_file" type="string" value="$(find orb_slam2_ros)/orb_slam2/config/RealSenseD435RGBD.yaml" />
+       <param name="voc_file" type="string" value="$(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt" />
 
        <param name="pointcloud_frame_id" type="string" value="map" />
        <param name="camera_frame_id" type="string" value="camera_link" />
