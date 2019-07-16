@@ -202,5 +202,5 @@ bool Node::SaveMapSrv (orb_slam2_ros::SaveMap::Request &req, orb_slam2_ros::Save
     ROS_INFO ("Map was saved.");
   }
 
-  return res.succes;
+  return res.success;
 }
