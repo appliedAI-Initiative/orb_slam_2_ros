@@ -95,7 +95,7 @@ There are three types of parameters right now: static- and dynamic ros parameter
 The static parameters are send to the ROS parameter server at startup and are not supposed to change. They are set in the launch files which are located at ros/launch. The parameters are:
 
 - **load_map**: Bool. If set to true, the node will try to load the map provided with map_file at startup.
-- **map_file**: String. The name of the file the map is saved at.
+- **map_file**: String. The name of the file the map is loaded from.
 - **settings_file**: String. The location of config file mentioned above.
 - **voc_file**: String. The location of config vocanulary file mentioned above.
 - **publish_pointcloud**: Bool. If the pointcloud containing all key points (the map) should be published.
@@ -136,6 +136,10 @@ So the save_map services are:
 - **/orb_slam2_mono/save_map**
 - **/orb_slam2_stereo/save_map**
 
+The save_map service expects the name of the file the map should be saved at as input.
+
+At the moment, while the save to file takes place, the SLAM is inactive.
+
 # 5. Run
 After sourcing your setup bash using
 ```
@@ -155,10 +159,11 @@ Here are some answers to frequently asked questions.
 ### How to save the map
 To save the map with a simple command line command run one the commands (matching to your node running):
 ```
-rosservice call /orb_slam2_rgbd/save_map
-rosservice call /orb_slam2_stereo/save_map
-rosservice call /orb_slam2_mono/save_map
+rosservice call /orb_slam2_rgbd/save_map map.bin
+rosservice call /orb_slam2_stereo/save_map map.bin
+rosservice call /orb_slam2_mono/save_map map.bin
 ```
+You can replace "map.bin" with any file name you want.
 The file will be saved at ROS_HOME which is by default ~/.ros
 
 ### Using a new / different camera
