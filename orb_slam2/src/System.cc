@@ -614,6 +614,13 @@ bool System::LoadMap(const string &filename) {
         return false;
     }
 
+    const rlim_t kNewStackSize = 64L * 1024L * 1024L;   // min stack size = 64 Mb
+    const rlim_t kDefaultCallStackSize = GetCurrentCallStackSize();
+    if (!SetCallStackSize(kNewStackSize)) {
+        std::cerr << "Error changing the call stack size; Aborting" << std::endl;
+        return false;
+    }
+
     std::cout << "Loading map file: " << map_file << std::flush;
     boost::archive::binary_iarchive ia(in, boost::archive::no_header);
     ia >> mpMap;
@@ -638,6 +645,8 @@ bool System::LoadMap(const string &filename) {
     
     std::cout << " ... done" << std::endl;
     in.close();
+
+    SetCallStackSize(kDefaultCallStackSize);
     
     return true;
 }
