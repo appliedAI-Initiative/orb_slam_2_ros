@@ -1486,6 +1486,7 @@ bool Tracking::Relocalization()
 
     if(!bMatch)
     {
+        mCurrentFrame.mTcw = cv::Mat::zeros(0, 0, CV_32F); // this prevents a segfault later (https://github.com/raulmur/ORB_SLAM2/pull/381#issuecomment-337312336)
         return false;
     }
     else

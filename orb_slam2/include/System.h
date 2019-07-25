@@ -26,6 +26,7 @@
 #include<thread>
 #include <unistd.h>
 #include<opencv2/core/core.hpp>
+#include <sys/resource.h>
 
 #include "Tracking.h"
 #include "FrameDrawer.h"
@@ -129,6 +130,10 @@ public:
     std::vector<MapPoint*> GetAllMapPoints();
 
 private:
+    bool SetCallStackSize (const rlim_t kNewStackSize);
+
+    rlim_t GetCurrentCallStackSize ();
+
     // This stops local mapping thread (map building) and performs only camera tracking.
     void ActivateLocalizationMode();
 

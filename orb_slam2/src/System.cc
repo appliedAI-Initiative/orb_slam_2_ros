@@ -497,6 +497,49 @@ std::vector<MapPoint*> System::GetAllMapPoints() {
   return mpMap->GetAllMapPoints();
 }
 
+
+bool System::SetCallStackSize (const rlim_t kNewStackSize) {
+    struct rlimit rlimit;
+    int operation_result;
+
+    operation_result = getrlimit(RLIMIT_STACK, &rlimit);
+    if (operation_result != 0) {
+        std::cerr << "Error getting the call stack struct" << std::endl;
+        return false;
+    }
+
+    if (kNewStackSize > rlimit.rlim_max) {
+        std::cerr << "Requested call stack size too large" << std::endl;
+        return false;
+    }
+
+    if (rlimit.rlim_cur < kNewStackSize) {
+        rlimit.rlim_cur = kNewStackSize;
+        operation_result = setrlimit(RLIMIT_STACK, &rlimit);
+        if (operation_result != 0) {
+            std::cerr << "Setrlimit returned result: " << operation_result << std::endl;
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+
+rlim_t System::GetCurrentCallStackSize () {
+    struct rlimit rlimit;
+    int operation_result;
+
+    operation_result = getrlimit(RLIMIT_STACK, &rlimit);
+    if (operation_result != 0) {
+        std::cerr << "Error getting the call stack struct" << std::endl;
+        return 16 * 1024L * 1024L; //default
+    }
+
+    return rlimit.rlim_cur;
+}
+
+
 void System::ActivateLocalizationMode()
 {
     currently_localizing_only_ = true;
@@ -527,11 +570,17 @@ void System::EnableLocalizationOnly (bool localize_only) {
 
 // map serialization addition
 bool System::SaveMap(const string &filename) {
-    
     unique_lock<mutex>MapPointGlobal(MapPoint::mGlobalMutex);
     std::ofstream out(filename, std::ios_base::binary);
     if (!out) {
         std::cerr << "cannot write to map file: " << map_file << std::endl;
+        return false;
+    }
+
+    const rlim_t kNewStackSize = 64L * 1024L * 1024L;   // min stack size = 64 Mb
+    const rlim_t kDefaultCallStackSize = GetCurrentCallStackSize();
+    if (!SetCallStackSize(kNewStackSize)) {
+        std::cerr << "Error changing the call stack size; Aborting" << std::endl;
         return false;
     }
 
@@ -542,15 +591,17 @@ bool System::SaveMap(const string &filename) {
         oa << mpKeyFrameDatabase;
         std::cout << " ... done" << std::endl;
         out.close();
-
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
+        SetCallStackSize(kDefaultCallStackSize);
         return false;
     } catch (...) {
         std::cerr << "Unknows exeption" << std::endl;
+        SetCallStackSize(kDefaultCallStackSize);
         return false;
     }
 
+    SetCallStackSize(kDefaultCallStackSize);
     return true;
 }
 
