@@ -165,6 +165,7 @@ rosservice call /orb_slam2_mono/save_map map.bin
 ```
 You can replace "map.bin" with any file name you want.
 The file will be saved at ROS_HOME which is by default ~/.ros
+
 **Note** that you need to source your catkin workspace in your terminal in order for the services to become available.
 
 ### Using a new / different camera
