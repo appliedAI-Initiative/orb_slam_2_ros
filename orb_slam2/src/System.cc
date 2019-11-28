@@ -513,7 +513,7 @@ bool System::SetCallStackSize (const rlim_t kNewStackSize) {
         return false;
     }
 
-    if (rlimit.rlim_cur < kNewStackSize) {
+    if (rlimit.rlim_cur <= kNewStackSize) {
         rlimit.rlim_cur = kNewStackSize;
         operation_result = setrlimit(RLIMIT_STACK, &rlimit);
         if (operation_result != 0) {
