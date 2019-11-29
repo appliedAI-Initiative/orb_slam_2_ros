@@ -17,7 +17,7 @@ Camera.width: 640
 Camera.height: 480
 
 # IR projector baseline times fx (aprox.)
-Camera.bf: 49.833290
+Camera.bf: 9.052
 
 # Camera frames per second
 Camera.fps: 30.0
