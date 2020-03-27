@@ -22,11 +22,15 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
-#include<string>
-#include<thread>
+#include <string>
+#include <thread>
 #include <unistd.h>
-#include<opencv2/core/core.hpp>
+#include <opencv2/core/core.hpp>
 #include <sys/resource.h>
+
+#include <ros/ros.h>
+#include <sensor_msgs/CameraInfo.h>
+
 
 #include "Tracking.h"
 #include "FrameDrawer.h"
@@ -57,7 +61,7 @@ public:
 public:
 
     // Initialize the SLAM system. It launches the Local Mapping, Loop Closing and Viewer threads.
-    System(const string strVocFile, const string strSettingsFile, const eSensor sensor,
+    System(const string strVocFile, const eSensor sensor, ros::NodeHandle &node_handle,
            const std::string & map_file = "", bool load_map = false); // map serialization addition
 
     // Process the given stereo frame. Images must be synchronized and rectified.
@@ -196,6 +200,7 @@ private:
 
     // Current position
     cv::Mat current_position_;
+
 };
 
 }// namespace ORB_SLAM

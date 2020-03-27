@@ -59,8 +59,6 @@ void StereoNode::ImageCallback (const sensor_msgs::ImageConstPtr& msgLeft, const
   }
 
   current_frame_time_ = msgLeft->header.stamp;
-//  ROS_DEBUG("left image time %f", msgLeft->header.stamp.toSec());
-//  ROS_DEBUG("right image time: %f", msgRight->header.stamp.toSec());
 
   orb_slam_->TrackStereo(cv_ptrLeft->image,cv_ptrRight->image,cv_ptrLeft->header.stamp.toSec());
 

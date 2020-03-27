@@ -31,6 +31,5 @@ private:
     message_filters::Subscriber<sensor_msgs::Image> *right_sub_;
     message_filters::Synchronizer<sync_pol> *sync_;
 
-
 };
 
