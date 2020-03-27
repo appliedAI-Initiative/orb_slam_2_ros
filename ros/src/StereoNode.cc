@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     ros::NodeHandle node_handle;
     image_transport::ImageTransport image_transport (node_handle);
 
-    // initilaize
+    // initialize
     StereoNode node (ORB_SLAM2::System::STEREO, node_handle, image_transport);
 
     ros::spin();
@@ -59,6 +59,8 @@ void StereoNode::ImageCallback (const sensor_msgs::ImageConstPtr& msgLeft, const
   }
 
   current_frame_time_ = msgLeft->header.stamp;
+//  ROS_DEBUG("left image time %f", msgLeft->header.stamp.toSec());
+//  ROS_DEBUG("right image time: %f", msgRight->header.stamp.toSec());
 
   orb_slam_->TrackStereo(cv_ptrLeft->image,cv_ptrRight->image,cv_ptrLeft->header.stamp.toSec());
 

@@ -60,7 +60,7 @@ public:
     System(const string strVocFile, const string strSettingsFile, const eSensor sensor,
            const std::string & map_file = "", bool load_map = false); // map serialization addition
 
-    // Proccess the given stereo frame. Images must be synchronized and rectified.
+    // Process the given stereo frame. Images must be synchronized and rectified.
     // Input images: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
     // Returns the camera pose (empty if tracking fails).
     void TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp);
@@ -71,7 +71,7 @@ public:
     // Returns the camera pose (empty if tracking fails).
     void TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp);
 
-    // Proccess the given monocular frame
+    // Process the given monocular frame
     // Input images: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
     // Returns the camera pose (empty if tracking fails).
     void TrackMonocular(const cv::Mat &im, const double &timestamp);

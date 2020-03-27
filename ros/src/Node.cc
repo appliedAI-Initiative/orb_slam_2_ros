@@ -10,6 +10,7 @@ Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, ima
   //static parameters
   node_handle_.param(name_of_node_+ "/publish_pointcloud", publish_pointcloud_param_, true);
   node_handle_.param(name_of_node_+ "/publish_pose", publish_pose_param_, true);
+  node_handle_.param(name_of_node_+ "/publish_tf", publish_tf_param_, true);
   node_handle_.param<std::string>(name_of_node_+ "/pointcloud_frame_id", map_frame_id_param_, "map");
   node_handle_.param<std::string>(name_of_node_+ "/camera_frame_id", camera_frame_id_param_, "camera_link");
   node_handle_.param<std::string>(name_of_node_ + "/map_file", map_file_name_param_, "map.bin");
@@ -77,9 +78,11 @@ void Node::PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points) {
 
 
 void Node::PublishPositionAsTransform (cv::Mat position) {
-  tf::Transform transform = TransformFromMat (position);
-  static tf::TransformBroadcaster tf_broadcaster;
-  tf_broadcaster.sendTransform(tf::StampedTransform(transform, current_frame_time_, map_frame_id_param_, camera_frame_id_param_));
+  if(publish_tf_param_){
+      tf::Transform transform = TransformFromMat (position);
+      static tf::TransformBroadcaster tf_broadcaster;
+      tf_broadcaster.sendTransform(tf::StampedTransform(transform, current_frame_time_, map_frame_id_param_, camera_frame_id_param_));
+  }
 }
 
 void Node::PublishPositionAsPoseStamped (cv::Mat position) {
@@ -87,7 +90,7 @@ void Node::PublishPositionAsPoseStamped (cv::Mat position) {
   tf::Stamped<tf::Pose> grasp_tf_pose(grasp_tf, current_frame_time_, map_frame_id_param_);
   geometry_msgs::PoseStamped pose_msg;
   tf::poseStampedTFToMsg (grasp_tf_pose, pose_msg);
-  pose_publisher_.publish(pose_msg);
+  pose_publisher_.publish(pose_msg); //############################################################################ Turn to with covariance
 }
 
 
@@ -106,6 +109,7 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
 
   rotation = position_mat.rowRange(0,3).colRange(0,3);
   translation = position_mat.rowRange(0,3).col(3);
+
 
   tf::Matrix3x3 tf_camera_rotation (rotation.at<float> (0,0), rotation.at<float> (0,1), rotation.at<float> (0,2),
                                     rotation.at<float> (1,0), rotation.at<float> (1,1), rotation.at<float> (1,2),
