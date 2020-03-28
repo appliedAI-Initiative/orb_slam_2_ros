@@ -40,6 +40,11 @@ System::System(const string strVocFile, const eSensor sensor, ros::NodeHandle &n
     "This is free software, and you are welcome to redistribute it" << endl <<
     "under certain conditions. See LICENSE.txt." << endl << endl;
 
+    cout << "OpenCV version : " << CV_VERSION << endl;
+    cout << "Major version : " << CV_MAJOR_VERSION << endl;
+    cout << "Minor version : " << CV_MINOR_VERSION << endl;
+    cout << "Subminor version : " << CV_SUBMINOR_VERSION << endl;
+
     cout << "Input sensor was set to: ";
 
     if(mSensor==MONOCULAR)

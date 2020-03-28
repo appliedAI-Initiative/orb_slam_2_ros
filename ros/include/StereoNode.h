@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <fstream>
 #include <chrono>
+#include <opencv2/imgproc/imgproc_c.h>
+#include <opencv2/core/types.hpp>
+
 
 #include <ros/ros.h>
 #include <message_filters/subscriber.h>
@@ -31,5 +34,7 @@ private:
     message_filters::Subscriber<sensor_msgs::Image> *right_sub_;
     message_filters::Synchronizer<sync_pol> *sync_;
 
+    int resize_horizontal;
+    int resize_vertical;
 };
 

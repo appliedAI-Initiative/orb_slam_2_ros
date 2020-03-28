@@ -29,6 +29,9 @@ StereoNode::StereoNode (const ORB_SLAM2::System::eSensor sensor, ros::NodeHandle
     left_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (node_handle, "image_left/image_color_rect", 1);
     right_sub_ = new message_filters::Subscriber<sensor_msgs::Image> (node_handle, "image_right/image_color_rect", 1);
 
+    node_handle.param(ros::this_node::getName()+ "/resize_horizontal", resize_horizontal, 640);
+    node_handle.param(ros::this_node::getName()+ "/resize_vertical", resize_vertical, 240);
+
     sync_ = new message_filters::Synchronizer<sync_pol> (sync_pol(10), *left_sub_, *right_sub_);
     sync_->registerCallback(boost::bind(&StereoNode::ImageCallback, this, _1, _2));
 }
@@ -60,7 +63,7 @@ void StereoNode::ImageCallback (const sensor_msgs::ImageConstPtr& msgLeft, const
 
   current_frame_time_ = msgLeft->header.stamp;
 
-  orb_slam_->TrackStereo(cv_ptrLeft->image,cv_ptrRight->image,cv_ptrLeft->header.stamp.toSec());
+  orb_slam_->TrackStereo(cv_ptrLeft->image, cv_ptrRight->image, cv_ptrLeft->header.stamp.toSec());
 
   Update ();
 }
