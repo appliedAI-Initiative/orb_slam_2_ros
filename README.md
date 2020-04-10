@@ -11,6 +11,7 @@ This is the ROS implementation of the ORB-SLAM2 real-time SLAM library for **Mon
 - Parameters can be set with the rqt_reconfigure gui during runtime
 - Very quick startup through considerably sped up vocab file loading
 - Full Map save and load functionality based on [this PR](https://github.com/raulmur/ORB_SLAM2/pull/381).
+- Loading of all parameters via launch file
 
 ### Related Publications:
 [Monocular] Raúl Mur-Artal, J. M. M. Montiel and Juan D. Tardós. **ORB-SLAM: A Versatile and Accurate Monocular SLAM System**. *IEEE Transactions on Robotics,* vol. 31, no. 5, pp. 1147-1163, 2015. (**2015 IEEE Transactions on Robotics Best Paper Award**). **[PDF](http://webdiis.unizar.es/~raulmur/MurMontielTardosTRO15.pdf)**.
@@ -86,8 +87,11 @@ catkin build
 in your catkin folder.
 
 # 3. Configuration
-## Config file
-To run the algorithm expects both a vocabulary file (see the paper) and a **config file with the camera- and some hyper parameters**. The vocab file ships with this repository, together with config files for multiple cameras. If you want to use any other camera you need to adjust this file (you can use one of the provided ones as a template). They are at orb_slam2/config.
+## Vocab file
+To run the algorithm expects both a vocabulary file (see the paper) which ships with this repository.
+
+# Config
+The config files for camera calibration and tracking hyper paramters from the original implementation are replaced with ros paramters which get set from a launch file.
 
 ## ROS parameters, topics and services
 ### Parameters
@@ -155,7 +159,7 @@ source devel/setup.bash
 Use the command from the corresponding cell for your camera to launch orb_slam2_ros with the right parameters for your setup.
 
 # 6. Docker
-An easy way is to use orb_slam2_ros with Docker. This repository ships with a Dockerfile based on ROS kinetic. 
+An easy way is to use orb_slam2_ros with Docker. This repository ships with a Dockerfile based on ROS kinetic.
 The container includes orb_slam2_ros as well as the Intel RealSense package for quick testing and data collection.
 
 # 7. FAQ
@@ -174,8 +178,8 @@ The file will be saved at ROS_HOME which is by default ~/.ros
 
 ### Using a new / different camera
 You can use this SLAM with almost any mono, stereo or RGBD cam you want.
-There are two files which need to be adjusted for a new camera:
-1) **The yaml config file** at orb_slam2/config for the camera intrinsics and some configurations. [Here](https://docs.opencv.org/3.1.0/dc/dbb/tutorial_py_calibration.html) you can read about what the calibration parameters mean. Use [this](http://wiki.ros.org/camera_calibration) ros node to obtain them for your camera. If you use a stereo or RGBD cam in addition to the calibration and resolution you need to adjust the other parameters such as Camera.bf, ThDepth and DepthMapFactor.
+In order to use this with a different camera you need to supply a set of paramters to the algorithm. They are loaded from a launch file from the ros/launch folder.
+1) You need the **camera intrinsics and some configurations**. [Here](https://docs.opencv.org/3.1.0/dc/dbb/tutorial_py_calibration.html) you can read about what the camera calibration parameters mean. Use [this](http://wiki.ros.org/camera_calibration) ros node to obtain them for your camera. If you use a stereo or RGBD cam in addition to the calibration and resolution you also need to adjust three other parameters: Camera.bf, ThDepth and DepthMapFactor.
 2) **The ros launch file** which is at ros/launch needs to have the correct topics to subscribe to from the new camera.
 
 ### Problem running the realsense node
