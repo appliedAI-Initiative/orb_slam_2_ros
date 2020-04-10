@@ -55,8 +55,9 @@ class Node
   protected:
     void Update ();
     ORB_SLAM2::System* orb_slam_;
-
     ros::Time current_frame_time_;
+
+    std::string camera_info_topic_;
 
   private:
     void PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points);
@@ -65,6 +66,7 @@ class Node
     void PublishRenderedImage (cv::Mat image);
     void ParamsChangedCallback(orb_slam2_ros::dynamic_reconfigureConfig &config, uint32_t level);
     bool SaveMapSrv (orb_slam2_ros::SaveMap::Request &req, orb_slam2_ros::SaveMap::Response &res);
+    void LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters);
 
     tf::Transform TransformFromMat (cv::Mat position_mat);
     sensor_msgs::PointCloud2 MapPointsToPointCloud (std::vector<ORB_SLAM2::MapPoint*> map_points);
@@ -79,6 +81,8 @@ class Node
 
     std::string name_of_node_;
     ros::NodeHandle node_handle_;
+
+    ORB_SLAM2::System::eSensor sensor_;
 
     std::string map_frame_id_param_;
     std::string camera_frame_id_param_;

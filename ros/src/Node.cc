@@ -6,6 +6,7 @@ Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, ima
   name_of_node_ = ros::this_node::getName();
   node_handle_ = node_handle;
   min_observations_per_point_ = 2;
+  sensor_ = sensor;
 
   //static parameters
   node_handle_.param(name_of_node_+ "/publish_pointcloud", publish_pointcloud_param_, true);
@@ -18,39 +19,10 @@ Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, ima
   node_handle_.param<std::string>(name_of_node_ + "/settings_file", settings_file_name_param_, "file_not_set");
   node_handle_.param(name_of_node_ + "/load_map", load_map_param_, false);
 
-   // Camera parameters
    // Create a parameters object to pass to the Tracking system
    ORB_SLAM2::ORBParameters parameters;
+   LoadOrbParameters (parameters);
 
-   //ORB SLAM configuration parameters
-   node_handle_.param(name_of_node_ + "/camera_fps", parameters.maxFrames, 30);
-   node_handle_.param(name_of_node_ + "/camera_encoding", parameters.RGB, true);
-   node_handle_.param(name_of_node_ + "/ThDepth", parameters.thDepth, static_cast<float>(35.0));
-   node_handle_.param(name_of_node_ + "/ORBextractor/nFeatures", parameters.nFeatures, 1200);
-   node_handle_.param(name_of_node_ + "/ORBextractor/scaleFactor", parameters.scaleFactor, static_cast<float>(1.2));
-   node_handle_.param(name_of_node_ + "/ORBextractor/nLevels", parameters.nLevels, 8);
-   node_handle_.param(name_of_node_ + "/ORBextractor/iniThFAST", parameters.iniThFAST, 20);
-   node_handle_.param(name_of_node_ + "/ORBextractor/minThFAST", parameters.minThFAST, 7);
-   node_handle_.param(name_of_node_ + "/depth_map_factor", parameters.depthMapFactor, static_cast<float>(1.0));
-
-   sensor_msgs::CameraInfo::ConstPtr camera_info = ros::topic::waitForMessage<sensor_msgs::CameraInfo>("image_right/camera_info", ros::Duration(1000.0));
-   if(camera_info == nullptr){
-       ROS_ERROR("Did not receive camera info before timeout!");
-       throw std::runtime_error("Timeout");
-   }
-
-   parameters.fx = camera_info->K[0];
-   parameters.fy = camera_info->K[4];
-   parameters.cx = camera_info->K[2];
-   parameters.cy = camera_info->K[5];
-
-   parameters.baseline = camera_info->P[3];
-
-   parameters.k1 = camera_info->D[0];
-   parameters.k2 = camera_info->D[1];
-   parameters.p1 = camera_info->D[2];
-   parameters.p2 = camera_info->D[3];
-   parameters.k3 = camera_info->D[4];
 
   orb_slam_ = new ORB_SLAM2::System (voc_file_name_param_, sensor, parameters, map_file_name_param_, load_map_param_);
 
@@ -124,7 +96,7 @@ void Node::PublishPositionAsPoseStamped (cv::Mat position) {
   tf::Stamped<tf::Pose> grasp_tf_pose(grasp_tf, current_frame_time_, map_frame_id_param_);
   geometry_msgs::PoseStamped pose_msg;
   tf::poseStampedTFToMsg (grasp_tf_pose, pose_msg);
-  pose_publisher_.publish(pose_msg); //############################################################################ Turn to with covariance
+  pose_publisher_.publish(pose_msg);
 }
 
 
@@ -243,4 +215,63 @@ bool Node::SaveMapSrv (orb_slam2_ros::SaveMap::Request &req, orb_slam2_ros::Save
   }
 
   return res.success;
+}
+
+
+void Node::LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters) {
+  //ORB SLAM configuration parameters
+  node_handle_.param(name_of_node_ + "/camera_fps", parameters.maxFrames, 30);
+  node_handle_.param(name_of_node_ + "/camera_rgb_encoding", parameters.RGB, true);
+  node_handle_.param(name_of_node_ + "/ORBextractor/nFeatures", parameters.nFeatures, 1200);
+  node_handle_.param(name_of_node_ + "/ORBextractor/scaleFactor", parameters.scaleFactor, static_cast<float>(1.2));
+  node_handle_.param(name_of_node_ + "/ORBextractor/nLevels", parameters.nLevels, 8);
+  node_handle_.param(name_of_node_ + "/ORBextractor/iniThFAST", parameters.iniThFAST, 20);
+  node_handle_.param(name_of_node_ + "/ORBextractor/minThFAST", parameters.minThFAST, 7);
+
+  bool load_calibration_from_cam = false;
+  node_handle_.param(name_of_node_ + "/load_calibration_from_cam", load_calibration_from_cam, false);
+
+  if (load_calibration_from_cam) {
+    sensor_msgs::CameraInfo::ConstPtr camera_info = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(camera_info_topic_, ros::Duration(1000.0));
+    if(camera_info == nullptr){
+        ROS_WARN("Did not receive camera info before timeout, defaulting to launch file params.");
+    } else {
+      parameters.fx = camera_info->K[0];
+      parameters.fy = camera_info->K[4];
+      parameters.cx = camera_info->K[2];
+      parameters.cy = camera_info->K[5];
+
+      parameters.baseline = camera_info->P[3];
+
+      parameters.k1 = camera_info->D[0];
+      parameters.k2 = camera_info->D[1];
+      parameters.p1 = camera_info->D[2];
+      parameters.p2 = camera_info->D[3];
+      parameters.k3 = camera_info->D[4];
+      return;
+    }
+  }
+
+  bool got_cam_calibration = true;
+  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_fx", parameters.fx);
+  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_fy", parameters.fy);
+  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_cx", parameters.cx);
+  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_cy", parameters.cy);
+  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_k1", parameters.k1);
+  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_k2", parameters.k2);
+  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_p1", parameters.p1);
+  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_p2", parameters.p2);
+  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_k3", parameters.k3);
+
+
+  if (sensor_==ORB_SLAM2::System::STEREO || sensor_==ORB_SLAM2::System::RGBD) {
+    node_handle_.param(name_of_node_ + "/ThDepth", parameters.thDepth, static_cast<float>(35.0));
+    got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_baseline", parameters.baseline);
+    node_handle_.param(name_of_node_ + "/depth_map_factor", parameters.depthMapFactor, static_cast<float>(1.0));
+  }
+
+  if (!got_cam_calibration) {
+    ROS_ERROR ("Failed to get camera calibration parameters from the launch file.");
+    throw std::runtime_error("No cam calibration");
+  }
 }
