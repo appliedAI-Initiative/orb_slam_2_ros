@@ -44,73 +44,51 @@ namespace ORB_SLAM2
 {
 
 Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
-        Map *pMap, KeyFrameDatabase* pKFDB, const int sensor, ros::NodeHandle &node_handle):
+        Map *pMap, KeyFrameDatabase* pKFDB, const int sensor, ORBParameters& parameters):
     mState(NO_IMAGES_YET), mSensor(sensor), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
     mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer*>(NULL)), mpSystem(pSys),
     mpFrameDrawer(pFrameDrawer), mpMap(pMap), mnLastRelocFrameId(0), mnMinimumKeyFrames(5)
 {
-    // Load camera parameters
-    name_of_node_ = ros::this_node::getName();
-    node_handle_ = node_handle;
-
-    //ORB SLAM configuration parameters
-    node_handle_.param(name_of_node_ + "/camera_fps", mMaxFrames, 30);
-    node_handle_.param(name_of_node_ + "/camera_encoding", mbRGB, true);
-    node_handle_.param(name_of_node_ + "/ThDepth", mThDepth, static_cast<float>(35.0));
-    node_handle_.param(name_of_node_ + "/ORBextractor/nFeatures", nFeatures, 1200);
-    node_handle_.param(name_of_node_ + "/ORBextractor/scaleFactor", fScaleFactor, static_cast<float>(1.2));
-    node_handle_.param(name_of_node_ + "/ORBextractor/nLevels", nLevels, 8);
-    node_handle_.param(name_of_node_ + "/ORBextractor/iniThFAST", fIniThFAST, 20);
-    node_handle_.param(name_of_node_ + "/ORBextractor/minThFAST", fMinThFAST, 7);
-    node_handle_.param(name_of_node_ + "/depth_map_factor", mDepthMapFactor, static_cast<float>(1.0));
-
-    camera_info = ros::topic::waitForMessage<sensor_msgs::CameraInfo>("image_right/camera_info", node_handle_, ros::Duration(10.0));
-    if(camera_info == nullptr){
-        ROS_ERROR("Did not receive camera info before timeout!");
-        throw std::runtime_error("Timeout");
-    }
-
-    const float fx = camera_info->K[0];
-    const float fy = camera_info->K[4];
-    const float cx = camera_info->K[2];
-    const float cy = camera_info->K[5];
-
-    const float k1 = camera_info->D[0];
-    const float k2 = camera_info->D[1];
-    const float p1 = camera_info->D[2];
-    const float p2 = camera_info->D[3];
-    const float k3 = camera_info->D[4];
-
+    //Unpack all the parameters from the parameters struct (this replaces loading in a second configuration file)
+    mMaxFrames = parameters.maxFrames;
+    mbRGB = parameters.RGB;
+    mThDepth = parameters.thDepth;
+    nFeatures = parameters.nFeatures;
+    fScaleFactor = parameters.scaleFactor;
+    nLevels = parameters.nLevels;
+    fIniThFAST = parameters.iniThFAST;
+    fMinThFAST = parameters.minThFAST;
+    mDepthMapFactor = parameters.depthMapFactor;
 
     cv::Mat K = cv::Mat::eye(3,3,CV_32F);
-    K.at<float>(0,0) = fx;
-    K.at<float>(1,1) = fy;
-    K.at<float>(0,2) = cx;
-    K.at<float>(1,2) = cy;
+    K.at<float>(0,0) = parameters.fx;
+    K.at<float>(1,1) = parameters.fy;
+    K.at<float>(0,2) = parameters.cx;
+    K.at<float>(1,2) = parameters.cy;
     K.copyTo(mK);
 
     cv::Mat DistCoef(4,1,CV_32F);
-    DistCoef.at<float>(0) = k1;
-    DistCoef.at<float>(1) = k2;
-    DistCoef.at<float>(2) = p1;
-    DistCoef.at<float>(3) = p2;
-    if(k3!=0)
+    DistCoef.at<float>(0) = parameters.k1;
+    DistCoef.at<float>(1) = parameters.k2;
+    DistCoef.at<float>(2) = parameters.p1;
+    DistCoef.at<float>(3) = parameters.p2;
+    if(parameters.k3!=0)
     {
         DistCoef.resize(5);
-        DistCoef.at<float>(4) = k3;
+        DistCoef.at<float>(4) = parameters.k3;
     }
     DistCoef.copyTo(mDistCoef);
 
-    mbf = -camera_info->P[3];
+    mbf = -parameters.baseline;
 
     // Max/Min Frames to insert keyframes and to check relocalization
     mMinFrames = 0;
 
     cout << endl << "Camera Parameters: " << endl;
-    cout << "- fx: " << fx << endl;
-    cout << "- fy: " << fy << endl;
-    cout << "- cx: " << cx << endl;
-    cout << "- cy: " << cy << endl;
+    cout << "- fx: " << parameters.fx << endl;
+    cout << "- fy: " << parameters.fy << endl;
+    cout << "- cx: " << parameters.cx << endl;
+    cout << "- cy: " << parameters.cy << endl;
     cout << "- k1: " << DistCoef.at<float>(0) << endl;
     cout << "- k2: " << DistCoef.at<float>(1) << endl;
     if(DistCoef.rows==5)
@@ -142,7 +120,7 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
 
     if(sensor==System::STEREO || sensor==System::RGBD)
     {
-        mThDepth = mbf*(float)mThDepth/fx;
+        mThDepth = mbf*(float)mThDepth/parameters.fx;
         cout << endl << "Depth Threshold (Close/Far Points): " << mThDepth << endl;
     }
 

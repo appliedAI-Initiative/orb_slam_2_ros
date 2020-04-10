@@ -28,9 +28,6 @@
 #include <opencv2/core/core.hpp>
 #include <sys/resource.h>
 
-#include <ros/ros.h>
-#include <sensor_msgs/CameraInfo.h>
-
 
 #include "Tracking.h"
 #include "FrameDrawer.h"
@@ -48,6 +45,8 @@ class Tracking;
 class LocalMapping;
 class LoopClosing;
 
+struct ORBParameters;
+
 class System
 {
 public:
@@ -61,7 +60,7 @@ public:
 public:
 
     // Initialize the SLAM system. It launches the Local Mapping, Loop Closing and Viewer threads.
-    System(const string strVocFile, const eSensor sensor, ros::NodeHandle &node_handle,
+    System(const string strVocFile, const eSensor sensor, ORBParameters& parameters,
            const std::string & map_file = "", bool load_map = false); // map serialization addition
 
     // Process the given stereo frame. Images must be synchronized and rectified.

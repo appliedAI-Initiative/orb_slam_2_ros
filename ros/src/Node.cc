@@ -18,7 +18,41 @@ Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, ima
   node_handle_.param<std::string>(name_of_node_ + "/settings_file", settings_file_name_param_, "file_not_set");
   node_handle_.param(name_of_node_ + "/load_map", load_map_param_, false);
 
-  orb_slam_ = new ORB_SLAM2::System (voc_file_name_param_, sensor, node_handle_, map_file_name_param_, load_map_param_);
+   // Camera parameters
+   // Create a parameters object to pass to the Tracking system
+   ORB_SLAM2::ORBParameters parameters;
+
+   //ORB SLAM configuration parameters
+   node_handle_.param(name_of_node_ + "/camera_fps", parameters.maxFrames, 30);
+   node_handle_.param(name_of_node_ + "/camera_encoding", parameters.RGB, true);
+   node_handle_.param(name_of_node_ + "/ThDepth", parameters.thDepth, static_cast<float>(35.0));
+   node_handle_.param(name_of_node_ + "/ORBextractor/nFeatures", parameters.nFeatures, 1200);
+   node_handle_.param(name_of_node_ + "/ORBextractor/scaleFactor", parameters.scaleFactor, static_cast<float>(1.2));
+   node_handle_.param(name_of_node_ + "/ORBextractor/nLevels", parameters.nLevels, 8);
+   node_handle_.param(name_of_node_ + "/ORBextractor/iniThFAST", parameters.iniThFAST, 20);
+   node_handle_.param(name_of_node_ + "/ORBextractor/minThFAST", parameters.minThFAST, 7);
+   node_handle_.param(name_of_node_ + "/depth_map_factor", parameters.depthMapFactor, static_cast<float>(1.0));
+
+   sensor_msgs::CameraInfo::ConstPtr camera_info = ros::topic::waitForMessage<sensor_msgs::CameraInfo>("image_right/camera_info", ros::Duration(1000.0));
+   if(camera_info == nullptr){
+       ROS_ERROR("Did not receive camera info before timeout!");
+       throw std::runtime_error("Timeout");
+   }
+
+   parameters.fx = camera_info->K[0];
+   parameters.fy = camera_info->K[4];
+   parameters.cx = camera_info->K[2];
+   parameters.cy = camera_info->K[5];
+
+   parameters.baseline = camera_info->P[3];
+
+   parameters.k1 = camera_info->D[0];
+   parameters.k2 = camera_info->D[1];
+   parameters.p1 = camera_info->D[2];
+   parameters.p2 = camera_info->D[3];
+   parameters.k3 = camera_info->D[4];
+
+  orb_slam_ = new ORB_SLAM2::System (voc_file_name_param_, sensor, parameters, map_file_name_param_, load_map_param_);
 
   service_server_ = node_handle_.advertiseService(name_of_node_+"/save_map", &Node::SaveMapSrv, this);
 

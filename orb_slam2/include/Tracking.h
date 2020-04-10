@@ -52,12 +52,22 @@ class LocalMapping;
 class LoopClosing;
 class System;
 
+struct ORBParameters{
+    // general parameters for the ORB detector
+    int maxFrames, nFeatures, nLevels, iniThFAST, minThFAST;
+    bool RGB;
+    float scaleFactor, depthMapFactor, thDepth;
+    // camera parameters
+    float fx, fy, cx, cy, baseline;
+    float k1, k2, p1, p2, k3;
+};
+
 class Tracking
 {
 
 public:
     Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, Map* pMap,
-             KeyFrameDatabase* pKFDB, const int sensor, ros::NodeHandle &node_handle);
+             KeyFrameDatabase* pKFDB, const int sensor, ORBParameters& parameters);
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
     cv::Mat GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp);
@@ -220,15 +230,11 @@ protected:
 
 
     // These parameters are for the ORB features extractor
-    std::string name_of_node_;
-    ros::NodeHandle node_handle_;
     int nFeatures;
     float fScaleFactor;
     int nLevels;
     int fIniThFAST;
     int fMinThFAST;
-    sensor_msgs::CameraInfo::ConstPtr camera_info;
-
 };
 
 } //namespace ORB_SLAM
