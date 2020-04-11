@@ -12,6 +12,7 @@ This is the ROS implementation of the ORB-SLAM2 real-time SLAM library for **Mon
 - Very quick startup through considerably sped up vocab file loading
 - Full Map save and load functionality based on [this PR](https://github.com/raulmur/ORB_SLAM2/pull/381).
 - Loading of all parameters via launch file
+- Supports loading cam parameters from cam_info topic
 
 ### Related Publications:
 [Monocular] Raúl Mur-Artal, J. M. M. Montiel and Juan D. Tardós. **ORB-SLAM: A Versatile and Accurate Monocular SLAM System**. *IEEE Transactions on Robotics,* vol. 31, no. 5, pp. 1147-1163, 2015. (**2015 IEEE Transactions on Robotics Best Paper Award**). **[PDF](http://webdiis.unizar.es/~raulmur/MurMontielTardosTRO15.pdf)**.
@@ -181,6 +182,7 @@ You can use this SLAM with almost any mono, stereo or RGBD cam you want.
 In order to use this with a different camera you need to supply a set of paramters to the algorithm. They are loaded from a launch file from the ros/launch folder.
 1) You need the **camera intrinsics and some configurations**. [Here](https://docs.opencv.org/3.1.0/dc/dbb/tutorial_py_calibration.html) you can read about what the camera calibration parameters mean. Use [this](http://wiki.ros.org/camera_calibration) ros node to obtain them for your camera. If you use a stereo or RGBD cam in addition to the calibration and resolution you also need to adjust three other parameters: Camera.bf, ThDepth and DepthMapFactor.
 2) **The ros launch file** which is at ros/launch needs to have the correct topics to subscribe to from the new camera.
+**NOTE** If your camera supports this, orb_slam_2_ros can subscribe to the camera_info topic and read the camera calibration parameters from there.
 
 ### Problem running the realsense node
 The node for the RealSense fails to launch when running
