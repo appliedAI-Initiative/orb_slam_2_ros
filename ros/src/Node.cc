@@ -230,9 +230,8 @@ void Node::LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters) {
   bool load_calibration_from_cam = false;
   node_handle_.param(name_of_node_ + "/load_calibration_from_cam", load_calibration_from_cam, false);
 
-  if (sensor_==ORB_SLAM2::System::STEREO || sensor_==ORB_SLAM2::System::RGBD) {
+  if (sensor_== ORB_SLAM2::System::STEREO || sensor_==ORB_SLAM2::System::RGBD) {
     node_handle_.param(name_of_node_ + "/ThDepth", parameters.thDepth, static_cast<float>(35.0));
-    got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_baseline", parameters.baseline);
     node_handle_.param(name_of_node_ + "/depth_map_factor", parameters.depthMapFactor, static_cast<float>(1.0));
   }
 
@@ -258,6 +257,10 @@ void Node::LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters) {
   }
 
   bool got_cam_calibration = true;
+  if (sensor_== ORB_SLAM2::System::STEREO || sensor_==ORB_SLAM2::System::RGBD) {
+    got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_baseline", parameters.baseline);
+  }
+
   got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_fx", parameters.fx);
   got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_fy", parameters.fy);
   got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_cx", parameters.cx);
