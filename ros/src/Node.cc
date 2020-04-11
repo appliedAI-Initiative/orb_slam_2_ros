@@ -23,7 +23,6 @@ Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, ima
    ORB_SLAM2::ORBParameters parameters;
    LoadOrbParameters (parameters);
 
-
   orb_slam_ = new ORB_SLAM2::System (voc_file_name_param_, sensor, parameters, map_file_name_param_, load_map_param_);
 
   service_server_ = node_handle_.advertiseService(name_of_node_+"/save_map", &Node::SaveMapSrv, this);
@@ -231,6 +230,12 @@ void Node::LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters) {
   bool load_calibration_from_cam = false;
   node_handle_.param(name_of_node_ + "/load_calibration_from_cam", load_calibration_from_cam, false);
 
+  if (sensor_==ORB_SLAM2::System::STEREO || sensor_==ORB_SLAM2::System::RGBD) {
+    node_handle_.param(name_of_node_ + "/ThDepth", parameters.thDepth, static_cast<float>(35.0));
+    got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_baseline", parameters.baseline);
+    node_handle_.param(name_of_node_ + "/depth_map_factor", parameters.depthMapFactor, static_cast<float>(1.0));
+  }
+
   if (load_calibration_from_cam) {
     sensor_msgs::CameraInfo::ConstPtr camera_info = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(camera_info_topic_, ros::Duration(1000.0));
     if(camera_info == nullptr){
@@ -262,13 +267,6 @@ void Node::LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters) {
   got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_p1", parameters.p1);
   got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_p2", parameters.p2);
   got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_k3", parameters.k3);
-
-
-  if (sensor_==ORB_SLAM2::System::STEREO || sensor_==ORB_SLAM2::System::RGBD) {
-    node_handle_.param(name_of_node_ + "/ThDepth", parameters.thDepth, static_cast<float>(35.0));
-    got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_baseline", parameters.baseline);
-    node_handle_.param(name_of_node_ + "/depth_map_factor", parameters.depthMapFactor, static_cast<float>(1.0));
-  }
 
   if (!got_cam_calibration) {
     ROS_ERROR ("Failed to get camera calibration parameters from the launch file.");
