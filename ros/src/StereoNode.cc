@@ -19,6 +19,8 @@ int main(int argc, char **argv)
     // initialize
     StereoNode node (ORB_SLAM2::System::STEREO, node_handle, image_transport);
 
+    node.Init();
+
     ros::spin();
 
     return 0;

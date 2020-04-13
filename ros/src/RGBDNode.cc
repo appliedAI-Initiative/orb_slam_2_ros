@@ -16,6 +16,8 @@ int main(int argc, char **argv)
 
     RGBDNode node (ORB_SLAM2::System::RGBD, node_handle, image_transport);
 
+    node.Init();
+
     ros::spin();
 
     ros::shutdown();

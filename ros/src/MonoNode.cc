@@ -15,6 +15,8 @@ int main(int argc, char **argv)
 
     MonoNode node (ORB_SLAM2::System::MONOCULAR, node_handle, image_transport);
 
+    node.Init();
+
     ros::spin();
 
     ros::shutdown();

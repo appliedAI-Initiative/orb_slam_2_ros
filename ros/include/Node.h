@@ -51,6 +51,7 @@ class Node
   public:
     Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
     ~Node ();
+    void Init ();
 
   protected:
     void Update ();
@@ -81,6 +82,7 @@ class Node
 
     std::string name_of_node_;
     ros::NodeHandle node_handle_;
+    image_transport::ImageTransport image_transport_;
 
     ORB_SLAM2::System::eSensor sensor_;
 
