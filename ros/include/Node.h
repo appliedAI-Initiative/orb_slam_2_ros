@@ -88,7 +88,6 @@ class Node
     std::string camera_frame_id_param_;
     std::string map_file_name_param_;
     std::string voc_file_name_param_;
-    std::string settings_file_name_param_;
     bool load_map_param_;
     bool publish_pointcloud_param_;
     bool publish_tf_param_;

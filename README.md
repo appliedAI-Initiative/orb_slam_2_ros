@@ -96,12 +96,11 @@ The config files for camera calibration and tracking hyper paramters from the or
 
 ## ROS parameters, topics and services
 ### Parameters
-There are three types of parameters right now: static- and dynamic ros parameters and camera settings from the config file.
+There are three types of parameters right now: static- and dynamic ros parameters and camera settings.
 The static parameters are send to the ROS parameter server at startup and are not supposed to change. They are set in the launch files which are located at ros/launch. The parameters are:
 
 - **load_map**: Bool. If set to true, the node will try to load the map provided with map_file at startup.
 - **map_file**: String. The name of the file the map is loaded from.
-- **settings_file**: String. The location of config file mentioned above.
 - **voc_file**: String. The location of config vocanulary file mentioned above.
 - **publish_pointcloud**: Bool. If the pointcloud containing all key points (the map) should be published.
 - **publish_pose**: Bool. If a PoseStamped message should be published. Even if this is false the tf will still be published.
