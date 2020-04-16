@@ -236,7 +236,7 @@ void Node::LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters) {
   }
 
   if (load_calibration_from_cam) {
-    ROS_INFO_STREAM ("Listening for camera info on topic " << camera_info_topic_);
+    ROS_INFO_STREAM ("Listening for camera info on topic " << node_handle_.resolveName(camera_info_topic_));
     sensor_msgs::CameraInfo::ConstPtr camera_info = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(camera_info_topic_, ros::Duration(1000.0));
     if(camera_info == nullptr){
         ROS_WARN("Did not receive camera info before timeout, defaulting to launch file params.");
