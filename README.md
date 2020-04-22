@@ -106,6 +106,7 @@ The static parameters are send to the ROS parameter server at startup and are no
 - **publish_pose**: Bool. If a PoseStamped message should be published. Even if this is false the tf will still be published.
 - **pointcloud_frame_id**: String. The Frame id of the Pointcloud/map.
 - **camera_frame_id**: String. The Frame id of the camera position.
+- **load_calibration_from_cam**: Bool. If true, camera calibration is read from a `camera_info` topic. Otherwise it is read from launch file params.
 
 Dynamic parameters can be changed at runtime. Either by updating them directly via the command line or by using [rqt_reconfigure](http://wiki.ros.org/rqt_reconfigure) which is the recommended way.
 The parameters are:
@@ -125,13 +126,19 @@ The following topics are being published and subscribed to by the nodes:
 - A **tf** from the pointcloud frame id to the camera frame id (the position).
 
 ### Subscribed topics
-- The mono node subscribes to **/camera/image_raw** for the input image.
+- The mono node subscribes to:
+    - **/camera/image_raw** for the input image
+    - **/camera/camera_info** for camera calibration (if `load_calibration_from_cam`) is `true`
 
-- The RGBD node subscribes to **/camera/rgb/image_raw** for the RGB image and
-- **/camera/depth_registered/image_raw** for the depth information.
+- The RGBD node subscribes to:
+    - **/camera/rgb/image_raw** for the RGB image
+    - **/camera/depth_registered/image_raw** for the depth information
+    - **/camera/rgb/camera_info** for camera calibration (if `load_calibration_from_cam`) is `true`
 
-- The stereo node subscribes to **image_left/image_color_rect** and
-- **image_right/image_color_rect** for corresponding images.
+- The stereo node subscribes to:
+    - **image_left/image_color_rect** and
+    - **image_right/image_color_rect** for corresponding images
+    - **image_left/camera_info** for camera calibration (if `load_calibration_from_cam`) is `true`
 
 # 4. Services
 All nodes offer the possibility to save the map via the service node_type/save_map.

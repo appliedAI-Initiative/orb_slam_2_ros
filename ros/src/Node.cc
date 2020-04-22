@@ -2,12 +2,25 @@
 
 #include <iostream>
 
-Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) {
+Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) :  image_transport_(image_transport) {
   name_of_node_ = ros::this_node::getName();
   node_handle_ = node_handle;
   min_observations_per_point_ = 2;
   sensor_ = sensor;
+}
 
+
+Node::~Node () {
+  // Stop all threads
+  orb_slam_->Shutdown();
+
+  // Save camera trajectory
+  orb_slam_->SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
+
+  delete orb_slam_;
+}
+
+void Node::Init () {
   //static parameters
   node_handle_.param(name_of_node_+ "/publish_pointcloud", publish_pointcloud_param_, true);
   node_handle_.param(name_of_node_+ "/publish_pose", publish_pose_param_, true);
@@ -22,7 +35,7 @@ Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, ima
    ORB_SLAM2::ORBParameters parameters;
    LoadOrbParameters (parameters);
 
-  orb_slam_ = new ORB_SLAM2::System (voc_file_name_param_, sensor, parameters, map_file_name_param_, load_map_param_);
+  orb_slam_ = new ORB_SLAM2::System (voc_file_name_param_, sensor_, parameters, map_file_name_param_, load_map_param_);
 
   service_server_ = node_handle_.advertiseService(name_of_node_+"/save_map", &Node::SaveMapSrv, this);
 
@@ -31,7 +44,7 @@ Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, ima
   dynamic_param_callback = boost::bind(&Node::ParamsChangedCallback, this, _1, _2);
   dynamic_param_server_.setCallback(dynamic_param_callback);
 
-  rendered_image_publisher_ = image_transport.advertise (name_of_node_+"/debug_image", 1);
+  rendered_image_publisher_ = image_transport_.advertise (name_of_node_+"/debug_image", 1);
   if (publish_pointcloud_param_) {
     map_points_publisher_ = node_handle_.advertise<sensor_msgs::PointCloud2> (name_of_node_+"/map_points", 1);
   }
@@ -40,18 +53,6 @@ Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, ima
   if (publish_pose_param_) {
     pose_publisher_ = node_handle_.advertise<geometry_msgs::PoseStamped> (name_of_node_+"/pose", 1);
   }
-
-}
-
-
-Node::~Node () {
-  // Stop all threads
-  orb_slam_->Shutdown();
-
-  // Save camera trajectory
-  orb_slam_->SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
-
-  delete orb_slam_;
 }
 
 
@@ -235,6 +236,7 @@ void Node::LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters) {
   }
 
   if (load_calibration_from_cam) {
+    ROS_INFO_STREAM ("Listening for camera info on topic " << node_handle_.resolveName(camera_info_topic_));
     sensor_msgs::CameraInfo::ConstPtr camera_info = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(camera_info_topic_, ros::Duration(1000.0));
     if(camera_info == nullptr){
         ROS_WARN("Did not receive camera info before timeout, defaulting to launch file params.");
