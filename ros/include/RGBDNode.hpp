@@ -18,8 +18,8 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ORBSLAM2_ROS_MONONODE_H_
-#define ORBSLAM2_ROS_MONONODE_H_
+#ifndef ORBSLAM2_ROS_RGBDODE_H_
+#define ORBSLAM2_ROS_RGBDODE_H_
 
 #include <iostream>
 #include <algorithm>
@@ -27,6 +27,9 @@
 #include <chrono>
 
 #include <ros/ros.h>
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
@@ -37,15 +40,18 @@
 #include "Node.h"
 
 
-class MonoNode : public Node
+class RGBDNode : public Node
 {
   public:
-    MonoNode (const ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
-    ~MonoNode ();
-    void ImageCallback (const sensor_msgs::ImageConstPtr& msg);
+    RGBDNode (const ORB_SLAM2::System::eSensor sensor, auto node = rclcpp::Node::make_shared("RGBD"), image_transport::ImageTransport &image_transport);
+    ~RGBDNode ();
+    void ImageCallback (const sensor_msgs::msg::ImageConstPtr& msgRGB,const sensor_msgs::msg::ImageConstPtr& msgD);
 
   private:
-    image_transport::Subscriber image_subscriber;
+    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::Image> sync_pol;
+    message_filters::Subscriber<sensor_msgs::msg::Image> *rgb_subscriber_;
+    message_filters::Subscriber<sensor_msgs::msg::Image> *depth_subscriber_;
+    message_filters::Synchronizer<sync_pol> *sync_;
 };
 
-#endif //ORBSLAM2_ROS_MONONODE_H_
+#endif //ORBSLAM2_ROS_RGBDODE_H_

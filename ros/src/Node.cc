@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) :  image_transport_(image_transport) {
-  name_of_node_ = ros::this_node::getName();
+Node::Node (ORB_SLAM2::System::eSensor sensor, auto node_handle = rclcpp::Node::make_shared("node");, image_transport::ImageTransport &image_transport) :  image_transport_(image_transport) {
+  name_of_node_ = rclcpp::this_node::getName();
   node_handle_ = node_handle;
   min_observations_per_point_ = 2;
   sensor_ = sensor;
@@ -46,12 +46,12 @@ void Node::Init () {
 
   rendered_image_publisher_ = image_transport_.advertise (name_of_node_+"/debug_image", 1);
   if (publish_pointcloud_param_) {
-    map_points_publisher_ = node_handle_.advertise<sensor_msgs::PointCloud2> (name_of_node_+"/map_points", 1);
+    map_points_publisher_ = node_handle_.advertise<sensor_msgs::msg::PointCloud2> (name_of_node_+"/map_points", 1);
   }
 
   // Enable publishing camera's pose as PoseStamped message
   if (publish_pose_param_) {
-    pose_publisher_ = node_handle_.advertise<geometry_msgs::PoseStamped> (name_of_node_+"/pose", 1);
+    pose_publisher_ = node_handle_.advertise<geometry_msgs::msg::PoseStamped> (name_of_node_+"/pose", 1);
   }
 }
 
@@ -77,7 +77,7 @@ void Node::Update () {
 
 
 void Node::PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points) {
-  sensor_msgs::PointCloud2 cloud = MapPointsToPointCloud (map_points);
+  sensor_msgs::msg::PointCloud2 cloud = MapPointsToPointCloud (map_points);
   map_points_publisher_.publish (cloud);
 }
 
@@ -93,7 +93,7 @@ void Node::PublishPositionAsTransform (cv::Mat position) {
 void Node::PublishPositionAsPoseStamped (cv::Mat position) {
   tf::Transform grasp_tf = TransformFromMat (position);
   tf::Stamped<tf::Pose> grasp_tf_pose(grasp_tf, current_frame_time_, map_frame_id_param_);
-  geometry_msgs::PoseStamped pose_msg;
+  geometry_msgs::msg::PoseStamped pose_msg;
   tf::poseStampedTFToMsg (grasp_tf_pose, pose_msg);
   pose_publisher_.publish(pose_msg);
 }
@@ -103,7 +103,7 @@ void Node::PublishRenderedImage (cv::Mat image) {
   std_msgs::Header header;
   header.stamp = current_frame_time_;
   header.frame_id = map_frame_id_param_;
-  const sensor_msgs::ImagePtr rendered_image_msg = cv_bridge::CvImage(header, "bgr8", image).toImageMsg();
+  const sensor_msgs::msg::ImagePtr rendered_image_msg = cv_bridge::CvImage(header, "bgr8", image).toImageMsg();
   rendered_image_publisher_.publish(rendered_image_msg);
 }
 
@@ -144,12 +144,12 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
 }
 
 
-sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::MapPoint*> map_points) {
+sensor_msgs::msg::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::MapPoint*> map_points) {
   if (map_points.size() == 0) {
     std::cout << "Map point vector is empty!" << std::endl;
   }
 
-  sensor_msgs::PointCloud2 cloud;
+  sensor_msgs::msg::PointCloud2 cloud;
 
   const int num_channels = 3; // x y z
 
@@ -168,7 +168,7 @@ sensor_msgs::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2::Map
   	cloud.fields[i].name = channel_id[i];
   	cloud.fields[i].offset = i * sizeof(float);
   	cloud.fields[i].count = 1;
-  	cloud.fields[i].datatype = sensor_msgs::PointField::FLOAT32;
+  	cloud.fields[i].datatype = sensor_msgs::msg::PointField::FLOAT32;
   }
 
   cloud.data.resize(cloud.row_step * cloud.height);
@@ -208,9 +208,9 @@ bool Node::SaveMapSrv (orb_slam2_ros::SaveMap::Request &req, orb_slam2_ros::Save
   res.success = orb_slam_->SaveMap(req.name);
 
   if (res.success) {
-    ROS_INFO_STREAM ("Map was saved as " << req.name);
+    RCLCPP_INFO(node->get_logger(),"Map was saved as " << req.name);
   } else {
-    ROS_ERROR ("Map could not be saved.");
+    RCLCPP_ERROR(node->get_logger(),"Map could not be saved.");
   }
 
   return res.success;
@@ -236,10 +236,10 @@ void Node::LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters) {
   }
 
   if (load_calibration_from_cam) {
-    ROS_INFO_STREAM ("Listening for camera info on topic " << node_handle_.resolveName(camera_info_topic_));
-    sensor_msgs::CameraInfo::ConstPtr camera_info = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(camera_info_topic_, ros::Duration(1000.0));
+    RCLCPP_INFO(node->get_logger(),"Listening for camera info on topic " << node_handle_.resolveName(camera_info_topic_));
+    sensor_msgs::msg::CameraInfo::ConstPtr camera_info = rclcpp::topic::waitForMessage<sensor_msgs::msg::CameraInfo>(camera_info_topic_, rclcpp::Duration(1000.0));
     if(camera_info == nullptr){
-        ROS_WARN("Did not receive camera info before timeout, defaulting to launch file params.");
+        RCLCPP_WARN(node->get_logger(),("Did not receive camera info before timeout, defaulting to launch file params.");
     } else {
       parameters.fx = camera_info->K[0];
       parameters.fy = camera_info->K[4];
@@ -273,7 +273,7 @@ void Node::LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters) {
   got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_k3", parameters.k3);
 
   if (!got_cam_calibration) {
-    ROS_ERROR ("Failed to get camera calibration parameters from the launch file.");
+    RCLCPP_ERROR(node->get_logger(),"Failed to get camera calibration parameters from the launch file.");
     throw std::runtime_error("No cam calibration");
   }
 }

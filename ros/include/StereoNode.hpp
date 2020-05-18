@@ -24,14 +24,14 @@
 class StereoNode : public Node
 {
   public:
-    StereoNode (const ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport);
+    StereoNode (const ORB_SLAM2::System::eSensor sensor, auto node = rclcpp::Node::make_shared("Stereo"), image_transport::ImageTransport &image_transport);
     ~StereoNode ();
-    void ImageCallback (const sensor_msgs::ImageConstPtr& msgLeft,const sensor_msgs::ImageConstPtr& msgRight);
+    void ImageCallback (const sensor_msgs::msg::ImageConstPtr& msgLeft,const sensor_msgs::msg::ImageConstPtr& msgRight);
 
 private:
-    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
-    message_filters::Subscriber<sensor_msgs::Image> *left_sub_;
-    message_filters::Subscriber<sensor_msgs::Image> *right_sub_;
+    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs:msg:::Image, sensor_msgs::msg::Image> sync_pol;
+    message_filters::Subscriber<sensor_msgs::msg::Image> *left_sub_;
+    message_filters::Subscriber<sensor_msgs::msg::Image> *right_sub_;
     message_filters::Synchronizer<sync_pol> *sync_;
 
     int resize_horizontal;
