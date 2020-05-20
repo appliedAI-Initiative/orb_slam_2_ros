@@ -21,12 +21,25 @@ find_package (ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(rclpy REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_common REQUIRED)
-find_package(tf REQUIRED)
-find_package(dynamic_reconfigure REQUIRED)
-find_package(message_generation REQUIRED)
+find_package(tf2_ros REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  srvs/Pause.srv
+  srvs/ClearQueue.srv
+  srvs/ToggleInteractive.srv
+  srvs/Clear.srv
+  srvs/SaveMap.srv
+  srvs/LoopClosure.srv
+  srvs/MergeMaps.srv
+  srvs/AddSubmap.srv
+  srvs/DeserializePoseGraph.srv
+  srvs/SerializePoseGraph.srv
+  DEPENDENCIES builtin_interfaces geometry_msgs std_msgs action_msgs nav_msgs
+)
+
+rosidl_target_interfaces(ceres_solver_plugin ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 find_package(OpenCV 4.0 QUIET)
 if(NOT OpenCV_FOUND)
@@ -40,17 +53,6 @@ if(NOT OpenCV_FOUND)
 endif()
 
 find_package(Eigen3 3.1.0 REQUIRED)
-
-set (DYNAMIC_RECONFIGURE_PATH ros/config/dynamic_reconfigure.cfg)
-execute_process(COMMAND chmod a+x ${DYNAMIC_RECONFIGURE_PATH}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-        RESULT_VARIABLE cmd_result
-        OUTPUT_VARIABLE cmd_ver)
-message(STATUS "Chmod a+x the dynamic_reconfigure file")
-
-generate_dynamic_reconfigure_options(
-        ${DYNAMIC_RECONFIGURE_PATH}
-)
 
 set(LIBS_ORBSLAM
 ${OpenCV_LIBS}
@@ -73,11 +75,6 @@ add_service_files(
 generate_messages(
         DEPENDENCIES
         std_msgs
-)
-
-catkin_package (
-  CATKIN_DEPENDS roscpp rospy std_msgs cv_bridge image_transport tf sensor_msgs dynamic_reconfigure message_runtime
-  LIBRARIES {PROJECT_NAME} libDBoW2 libg2o
 )
 
 include_directories(
@@ -157,31 +154,34 @@ ${LIBS_ROS}
 )
 
 install(TARGETS ${PROJECT_NAME}_mono ${PROJECT_NAME}_stereo ${PROJECT_NAME}_rgbd
-  DESTINATION lib/${PROJECT_NAME}
-  #ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  #LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  #RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 install(TARGETS ${PROJECT_NAME} DBoW2 g2o
-  DESTINATION lib/${PROJECT_NAME}
-  #ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  #LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  #RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
+install(TARGETS ${executable_name}
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+
 install(DIRECTORY ros/launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ros/launch
+  DESTINATION /ros/launch
 )
 
 install(DIRECTORY ros/config/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/ros/config
+        DESTINATION /ros/config
 )
 
 install(DIRECTORY orb_slam2/config/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/orb_slam2/config
+  DESTINATION /orb_slam2/config
 )
 
 install(DIRECTORY orb_slam2/Vocabulary/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/orb_slam2/Vocabulary
+  DESTINATION /orb_slam2/Vocabulary
 )

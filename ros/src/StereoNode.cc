@@ -7,10 +7,9 @@
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    rclcpp::start();
 
     if(argc > 1) {
-        RCLCPP_WARN(node->get_logger(), "Arguments supplied via command line are neglected.");
+        RCLCPP_WARN(this->get_logger(), "Arguments supplied via command line are neglected.");
     }
 
     auto node = rclcpp::Node::make_shared("Stereo");
@@ -21,7 +20,7 @@ int main(int argc, char **argv)
 
     node.Init();
 
-    ros::spin();
+    rclcpp::spin(std::make_shared<Node>());
 
     return 0;
 }
@@ -44,7 +43,7 @@ StereoNode::~StereoNode () {
 }
 
 
-void StereoNode::ImageCallback (const sensor_msgs::msg::ImageConstPtr& msgLeft, const sensor_msgs::msg::ImageConstPtr& msgRight) {
+void StereoNode::ImageCallback (const sensor_msgs::msg::ImageConstSharedPtr& msgLeft, const sensor_msgs::msg::ImageConstSharedPtr& msgRight) {
   cv_bridge::CvImageConstPtr cv_ptrLeft;
   try {
       cv_ptrLeft = cv_bridge::toCvShare(msgLeft);

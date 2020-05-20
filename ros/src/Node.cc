@@ -84,9 +84,9 @@ void Node::PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points) {
 
 void Node::PublishPositionAsTransform (cv::Mat position) {
   if(publish_tf_param_){
-      tf::Transform transform = TransformFromMat (position);
-      static tf::TransformBroadcaster tf_broadcaster;
-      tf_broadcaster.sendTransform(tf::StampedTransform(transform, current_frame_time_, map_frame_id_param_, camera_frame_id_param_));
+      tf2::Transform transform = TransformFromMat (position);
+      static tf2::TransformBroadcaster tf_broadcaster;
+      tf_broadcaster.sendTransform(tf2::StampedTransform(transform, current_frame_time_, map_frame_id_param_, camera_frame_id_param_));
   }
 }
 
@@ -108,7 +108,7 @@ void Node::PublishRenderedImage (cv::Mat image) {
 }
 
 
-tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
+tf2::Transform Node::TransformFromMat (cv::Mat position_mat) {
   cv::Mat rotation(3,3,CV_32F);
   cv::Mat translation(3,1,CV_32F);
 
@@ -116,15 +116,15 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
   translation = position_mat.rowRange(0,3).col(3);
 
 
-  tf::Matrix3x3 tf_camera_rotation (rotation.at<float> (0,0), rotation.at<float> (0,1), rotation.at<float> (0,2),
+  tf2::Matrix3x3 tf_camera_rotation (rotation.at<float> (0,0), rotation.at<float> (0,1), rotation.at<float> (0,2),
                                     rotation.at<float> (1,0), rotation.at<float> (1,1), rotation.at<float> (1,2),
                                     rotation.at<float> (2,0), rotation.at<float> (2,1), rotation.at<float> (2,2)
                                    );
 
-  tf::Vector3 tf_camera_translation (translation.at<float> (0), translation.at<float> (1), translation.at<float> (2));
+  tf2::Vector3 tf_camera_translation (translation.at<float> (0), translation.at<float> (1), translation.at<float> (2));
 
   //Coordinate transformation matrix from orb coordinate system to ros coordinate system
-  const tf::Matrix3x3 tf_orb_to_ros (0, 0, 1,
+  const tf2::Matrix3x3 tf_orb_to_ros (0, 0, 1,
                                     -1, 0, 0,
                                      0,-1, 0);
 

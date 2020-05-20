@@ -3,10 +3,9 @@
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    rclcpp::start();
 
     if(argc > 1) {
-        RCLCPP_WARN(node->get_logger(), "Arguments supplied via command line are neglected.");
+        RCLCPP_WARN(this->get_logger(), "Arguments supplied via command line are neglected.");
     }
 
     auto node = rclcpp::Node::make_shared("RGBD");
@@ -18,7 +17,7 @@ int main(int argc, char **argv)
 
     node.Init();
 
-    rclcpp::spin();
+    rclcpp::spin(std::make_shared<Node>());
 
     rclcpp::shutdown();
 
