@@ -1,4 +1,4 @@
-#include "MonoNode.h"
+#include "MonoNode.hpp"
 
 int main(int argc, char **argv)
 {
@@ -9,6 +9,7 @@ int main(int argc, char **argv)
     }
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
+    auto options = rclcpp::NodeOptions();
     auto node = rclcpp::Node::make_shared("Mono");
     image_transport::ImageTransport image_transport (node);
 
@@ -16,7 +17,7 @@ int main(int argc, char **argv)
 
     node.Init();
 
-    rclcpp::spin(std::make_shared<Node>());
+    rclcpp::spin(MonoNode->get_node_base_interface());
 
     rclcpp::shutdown();
 
@@ -24,7 +25,7 @@ int main(int argc, char **argv)
 }
 
 
-MonoNode::MonoNode (ORB_SLAM2::System::eSensor sensor, auto node = rclcpp::Node::make_shared("Mono"), image_transport::ImageTransport &image_transport) : Node (sensor, node, image_transport) {
+MonoNode::MonoNode (ORB_SLAM2::System::eSensor sensor, rclcpp::NodeOptions options, image_transport::ImageTransport &image_transport) : Node (sensor, node, image_transport) {
   image_subscriber = image_transport.subscribe ("/camera/image_raw", 1, &MonoNode::ImageCallback, this);
   camera_info_topic_ = "/camera/camera_info";
 }
@@ -34,7 +35,7 @@ MonoNode::~MonoNode () {
 }
 
 
-void MonoNode::ImageCallback (const sensor_msgs::msg::ImageConstPtr& msg) {
+void MonoNode::ImageCallback (const sensor_msgs::msg::ImageConstPtr msg) {
   cv_bridge::CvImageConstPtr cv_in_ptr;
   try {
       cv_in_ptr = cv_bridge::toCvShare(msg);

@@ -1,4 +1,4 @@
-#include "RGBDNode.h"
+#include "RGBDNode.hpp"
 
 int main(int argc, char **argv)
 {
@@ -7,7 +7,7 @@ int main(int argc, char **argv)
     if(argc > 1) {
         RCLCPP_WARN(this->get_logger(), "Arguments supplied via command line are neglected.");
     }
-
+    auto options = rclcpp::NodeOptions();
     auto node = rclcpp::Node::make_shared("RGBD");
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 
     node.Init();
 
-    rclcpp::spin(std::make_shared<Node>());
+    rclcpp::spin(RGBDNode->get_node_base_interface());
 
     rclcpp::shutdown();
 
@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 }
 
 
-RGBDNode::RGBDNode (const ORB_SLAM2::System::eSensor sensor, auto node = rclcpp::Node::make_shared("RGBD"), image_transport::ImageTransport &image_transport) : Node (sensor, node, image_transport) {
+RGBDNode::RGBDNode (const ORB_SLAM2::System::eSensor sensor, rclcpp::NodeOptions options, image_transport::ImageTransport &image_transport) : Node (sensor, node, image_transport) {
   rgb_subscriber_ = new message_filters::Subscriber<sensor_msgs::msg::Image> (node, "/camera/rgb/image_raw", 1);
   depth_subscriber_ = new message_filters::Subscriber<sensor_msgs::msg::Image> (node, "/camera/depth_registered/image_raw", 1);
   camera_info_topic_ = "/camera/rgb/camera_info";
@@ -42,7 +42,7 @@ RGBDNode::~RGBDNode () {
 }
 
 
-void RGBDNode::ImageCallback (const sensor_msgs::msg::ImageConstPtr& msgRGB, const sensor_msgs::msg::ImageConstPtr& msgD) {
+void RGBDNode::ImageCallback (const sensor_msgs::msg::ImageConstPtr msgRGB, const sensor_msgs::msg::ImageConstPtr msgD) {
   // Copy the ros image message to cv::Mat.
   cv_bridge::CvImageConstPtr cv_ptrRGB;
   try {

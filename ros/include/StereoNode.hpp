@@ -8,18 +8,18 @@
 #include <opencv2/core/types.hpp>
 
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/image_encodings.hpp>
 #include <opencv2/core/core.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 
 #include "System.h"
-#include "Node.h"
+#include "Node.hpp"
 
 class StereoNode : public Node
 {
