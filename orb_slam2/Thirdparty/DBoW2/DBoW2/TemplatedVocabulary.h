@@ -1524,10 +1524,10 @@ bool TemplatedVocabulary<TDescriptor,F>::loadFromBinFile(const std::string &file
         unsigned char nIsLeafuc;
         f.read((char*)&nIsLeafuc,sizeof(nIsLeafuc));
         nIsLeaf=nIsLeafuc;
-        unsigned char array[F::L]; // the number of element is stored in F::L
-        f.read((char*)array,(long)F::L);
+        std::vector<unsigned char> array(F::L); // the number of element is stored in F::L
+        f.read((char*)array.data(),(long)F::L);
         m_nodes[nid].descriptor.create(1, F::L, CV_8U);
-        F::fromArray8U(m_nodes[nid].descriptor,(unsigned char *)array);
+        F::fromArray8U(m_nodes[nid].descriptor, array.data());
         f.read((char*)&m_nodes[nid].weight,sizeof(m_nodes[nid].weight));
         if(nIsLeaf>0)
         {

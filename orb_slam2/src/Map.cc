@@ -132,7 +132,7 @@ void Map::clear()
 
 // map serialization addition
 template<class Archive>
-void Map::serialize(Archive &ar, const unsigned int version)
+void Map::serialize(Archive &ar, const unsigned int /*version*/)
 {
     // don't save mutex
     unique_lock<mutex> lock_MapUpdate(mMutexMapUpdate);

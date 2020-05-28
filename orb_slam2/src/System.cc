@@ -30,8 +30,8 @@ namespace ORB_SLAM2
 
 System::System(const string strVocFile, const eSensor sensor, ORBParameters& parameters,
                const std::string & map_file, bool load_map): // map serialization addition
-               mSensor(sensor), mbReset(false),mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false),
-               map_file(map_file), load_map(load_map)
+               load_map(load_map), map_file(map_file), mSensor(sensor), mbReset(false),
+               mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false)
 {
     // Output welcome message
     cout << endl <<

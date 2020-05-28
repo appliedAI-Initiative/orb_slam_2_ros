@@ -15,14 +15,14 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-##LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/orb_slam2/cmake_modules)
-
-find_package (ament_cmake REQUIRED)
+find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_common REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
@@ -37,38 +37,19 @@ if(NOT OpenCV_FOUND)
    endif()
 endif()
 
-find_package(Eigen3 3.1.0 REQUIRED)
+find_package(Eigen3 REQUIRED)
 
-set(LIBS_ORBSLAM
-${OpenCV_LIBS}
-${EIGEN3_LIBS}
-${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/DBoW2/lib/libDBoW2.so
-${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/g2o/lib/libg2o.so
-rclcpp
-std_msgs
-sensor_msgs
-)
-
-set(LIBS_ROS
-${PROJECT_SOURCE_DIR}/orb_slam2/lib/lib${PROJECT_NAME}.so
-${OpenCV_LIBS}
-rclcpp
-std_msgs
-)
-
-rosidl_generate_interfaces(${PROJECT_NAME}_srv
+rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SaveMap.srv"
-  DEPENDENCIES std_msgs
+  DEPENDENCIES builtin_interfaces std_msgs
 )
-
 
 include_directories(
-${PROJECT_SOURCE_DIR}/orb_slam2
-${PROJECT_SOURCE_DIR}/orb_slam2/include
-${PROJECT_SOURCE_DIR}/ros/include
-${EIGEN3_INCLUDE_DIR}
-include
-
+  ${PROJECT_SOURCE_DIR}/orb_slam2
+  ${PROJECT_SOURCE_DIR}/orb_slam2/include
+  ${PROJECT_SOURCE_DIR}/ros/include
+  ${EIGEN3_INCLUDE_DIR}
+  include
 )
 
 include(${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/DBoW2/CMakeLists.txt)
@@ -76,29 +57,35 @@ include(${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/g2o/CMakeLists.txt)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/orb_slam2/lib)
 
-add_library(${PROJECT_NAME} SHARED
-orb_slam2/src/System.cc
-orb_slam2/src/Tracking.cc
-orb_slam2/src/LocalMapping.cc
-orb_slam2/src/LoopClosing.cc
-orb_slam2/src/ORBextractor.cc
-orb_slam2/src/ORBmatcher.cc
-orb_slam2/src/FrameDrawer.cc
-orb_slam2/src/Converter.cc
-orb_slam2/src/MapPoint.cc
-orb_slam2/src/KeyFrame.cc
-orb_slam2/src/Map.cc
-orb_slam2/src/Optimizer.cc
-orb_slam2/src/PnPsolver.cc
-orb_slam2/src/Frame.cc
-orb_slam2/src/KeyFrameDatabase.cc
-orb_slam2/src/Sim3Solver.cc
-orb_slam2/src/Initializer.cc
+add_library(orb_slam2_ros_core SHARED
+  orb_slam2/src/System.cc
+  orb_slam2/src/Tracking.cc
+  orb_slam2/src/LocalMapping.cc
+  orb_slam2/src/LoopClosing.cc
+  orb_slam2/src/ORBextractor.cc
+  orb_slam2/src/ORBmatcher.cc
+  orb_slam2/src/FrameDrawer.cc
+  orb_slam2/src/Converter.cc
+  orb_slam2/src/MapPoint.cc
+  orb_slam2/src/KeyFrame.cc
+  orb_slam2/src/Map.cc
+  orb_slam2/src/Optimizer.cc
+  orb_slam2/src/PnPsolver.cc
+  orb_slam2/src/Frame.cc
+  orb_slam2/src/KeyFrameDatabase.cc
+  orb_slam2/src/Sim3Solver.cc
+  orb_slam2/src/Initializer.cc
 )
-add_dependencies(${PROJECT_NAME} g2o DBoW2)
-
-target_link_libraries(${PROJECT_NAME} 
-${LIBS_ORBSLAM}
+ament_target_dependencies(orb_slam2_ros_core
+  rclcpp
+  std_msgs
+  sensor_msgs
+)
+target_link_libraries(orb_slam2_ros_core
+  ${OpenCV_LIBS}
+  ${EIGEN3_LIBS}
+  ${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/DBoW2/lib/libDBoW2.so
+  ${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/g2o/lib/libg2o.so
 )
 
 # map serialization addition - library boost serialization 
@@ -107,71 +94,94 @@ find_library(BOOST_SERIALIZATION boost_serialization)
 if (NOT BOOST_SERIALIZATION)
     message(FATAL_ERROR "Can't find libboost_serialization")
 endif()
-target_link_libraries(${PROJECT_NAME} ${BOOST_SERIALIZATION})
+target_link_libraries(orb_slam2_ros_core ${BOOST_SERIALIZATION})
 
 #Mono
-add_executable (${PROJECT_NAME}_mono
-ros/src/MonoNode.cc
-ros/src/Node.cc
+add_executable(${PROJECT_NAME}_mono
+  ros/src/MonoNode.cc
+  ros/src/Node.cc
 )
-ament_target_dependencies (${PROJECT_NAME}_mono rclcpp std_msgs cv_bridge image_common tf2_ros sensor_msgs)
-
+ament_target_dependencies(${PROJECT_NAME}_mono
+  rclcpp
+  std_msgs
+  cv_bridge
+  image_common
+  image_transport
+  tf2_geometry_msgs
+  tf2_ros
+  sensor_msgs
+)
 target_link_libraries(${PROJECT_NAME}_mono
-${LIBS_ROS}
+  orb_slam2_ros_core
+  ${OpenCV_LIBS}
 )
 
-rosidl_target_interfaces(${PROJECT_NAME}_mono ${PROJECT_NAME}_srv "rosidl_typesupport_cpp")
+rosidl_target_interfaces(${PROJECT_NAME}_mono ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 #Stereo
 add_executable (${PROJECT_NAME}_stereo
-ros/src/StereoNode.cc
-ros/src/Node.cc
+  ros/src/StereoNode.cc
+  ros/src/Node.cc
 )
-ament_target_dependencies (${PROJECT_NAME}_stereo rclcpp std_msgs cv_bridge image_common tf2_ros sensor_msgs)
-
+ament_target_dependencies(${PROJECT_NAME}_stereo
+  rclcpp
+  std_msgs
+  cv_bridge
+  image_common
+  image_transport
+  tf2_geometry_msgs
+  tf2_ros
+  sensor_msgs
+)
 target_link_libraries(${PROJECT_NAME}_stereo
-${LIBS_ROS}
+  orb_slam2_ros_core
+  ${OpenCV_LIBS}
 )
 
-rosidl_target_interfaces(${PROJECT_NAME}_stereo ${PROJECT_NAME}_srv "rosidl_typesupport_cpp")
+rosidl_target_interfaces(${PROJECT_NAME}_stereo ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 #RGBD
-add_executable (${PROJECT_NAME}_rgbd
-ros/src/RGBDNode.cc
-ros/src/Node.cc
+add_executable(${PROJECT_NAME}_rgbd
+  ros/src/RGBDNode.cc
+  ros/src/Node.cc
 )
-ament_target_dependencies (${PROJECT_NAME}_rgbd rclcpp std_msgs cv_bridge image_common tf2_ros sensor_msgs)
-
+ament_target_dependencies(${PROJECT_NAME}_rgbd
+  rclcpp
+  std_msgs
+  cv_bridge
+  image_common
+  image_transport
+  tf2_geometry_msgs
+  tf2_ros
+  sensor_msgs
+)
 target_link_libraries(${PROJECT_NAME}_rgbd
-${LIBS_ROS}
+  orb_slam2_ros_core
+  ${OpenCV_LIBS}
 )
 
-rosidl_target_interfaces(${PROJECT_NAME}_rgbd ${PROJECT_NAME}_srv "rosidl_typesupport_cpp")
+rosidl_target_interfaces(${PROJECT_NAME}_rgbd ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 install(TARGETS ${PROJECT_NAME}_mono ${PROJECT_NAME}_stereo ${PROJECT_NAME}_rgbd
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-install(TARGETS ${PROJECT_NAME} DBoW2 g2o
+install(TARGETS orb_slam2_ros_core DBoW2 g2o
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
 
 install(DIRECTORY ros/launch/
-  DESTINATION /ros/launch
+  DESTINATION ros/launch
 )
 
 install(DIRECTORY ros/config/
-        DESTINATION /ros/config
-)
-
-install(DIRECTORY orb_slam2/config/
-  DESTINATION /orb_slam2/config
+  DESTINATION ros/config
 )
 
 install(DIRECTORY orb_slam2/Vocabulary/
-  DESTINATION /orb_slam2/Vocabulary
+  DESTINATION orb_slam2/Vocabulary
 )
 
 if(BUILD_TESTING)
@@ -179,7 +189,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_export_dependencies(rclcpp std_msgs cv_bridge image_common tf2_ros sensor_msgs DBoW2 g2o)
-ament_export_libraries({PROJECT_NAME} libDBoW2 libg2o)
-
+ament_export_include_directories(include)
+ament_export_dependencies(rclcpp std_msgs cv_bridge image_common tf2_ros sensor_msgs rosidl_default_runtime DBoW2 g2o)
+ament_export_libraries(orb_slam2_ros_core libDBoW2 libg2o)
 ament_package()

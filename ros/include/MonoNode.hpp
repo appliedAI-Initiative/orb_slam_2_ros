@@ -30,6 +30,7 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.hpp>
+#include <sensor_msgs/msg/image.hpp>
 #include <opencv2/core/core.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 
@@ -39,13 +40,16 @@
 
 class MonoNode : public Node
 {
-  public:
-    MonoNode (const ORB_SLAM2::System::eSensor sensor, auto node = rclcpp::Node::make_shared("Mono"), image_transport::ImageTransport &image_transport);
-    ~MonoNode ();
-    void ImageCallback (const sensor_msgs::msg::ImageConstPtr& msg);
+public:
+  MonoNode (
+    const ORB_SLAM2::System::eSensor sensor,
+    rclcpp::Node::SharedPtr & node,
+    std::shared_ptr<image_transport::ImageTransport> & image_transport);
+  ~MonoNode ();
+  void ImageCallback (const sensor_msgs::msg::Image::ConstSharedPtr & msg);
 
-  private:
-    image_transport::Subscriber image_subscriber;
+private:
+  image_transport::Subscriber image_subscriber_;
 };
 
 #endif //ORBSLAM2_ROS_MONONODE_H_

@@ -32,20 +32,20 @@ namespace boost{
 
     /* serialization for DBoW2 BowVector */
     template<class Archive>
-    void serialize(Archive &ar, DBoW2::BowVector &BowVec, const unsigned int file_version)
+    void serialize(Archive &ar, DBoW2::BowVector &BowVec, const unsigned int /*file_version*/)
     {
         ar & boost::serialization::base_object< std::map<DBoW2::WordId, DBoW2::WordValue> >(BowVec);
     }
     /* serialization for DBoW2 FeatureVector */
     template<class Archive>
-    void serialize(Archive &ar, DBoW2::FeatureVector &FeatVec, const unsigned int file_version)
+    void serialize(Archive &ar, DBoW2::FeatureVector &FeatVec, const unsigned int /*file_version*/)
     {
         ar & boost::serialization::base_object<std::map<DBoW2::NodeId, std::vector<unsigned int> > >(FeatVec);
     }
 
     /* serialization for CV KeyPoint */
     template<class Archive>
-    void serialize(Archive &ar, ::cv::KeyPoint &kf, const unsigned int file_version)
+    void serialize(Archive &ar, ::cv::KeyPoint &kf, const unsigned int /*file_version*/)
     {
         ar & kf.angle;
         ar & kf.class_id;
@@ -57,7 +57,7 @@ namespace boost{
     }
     /* serialization for CV Mat */
     template<class Archive>
-    void save(Archive &ar, const ::cv::Mat &m, const unsigned int file_version)
+    void save(Archive &ar, const ::cv::Mat &m, const unsigned int /*file_version*/)
     {
         cv::Mat m_ = m;
         if (!m.isContinuous())
@@ -74,7 +74,7 @@ namespace boost{
         ar & boost::serialization::make_array(m_.ptr(), data_size);
     }
     template<class Archive>
-    void load(Archive & ar, ::cv::Mat& m, const unsigned int version)
+    void load(Archive & ar, ::cv::Mat& m, const unsigned int /*version*/)
     {
         int cols, rows;
         size_t elem_size, elem_type;

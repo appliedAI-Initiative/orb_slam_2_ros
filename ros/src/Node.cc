@@ -2,11 +2,68 @@
 
 #include <iostream>
 
-Node::Node (ORB_SLAM2::System::eSensor sensor, auto node_handle = rclcpp::Node::make_shared("node");, image_transport::ImageTransport &image_transport) :  image_transport_(image_transport) {
-  name_of_node_ = rclcpp::this_node::getName();
-  node_handle_ = node_handle;
+Node::Node(
+  ORB_SLAM2::System::eSensor sensor,
+  rclcpp::Node::SharedPtr & node,
+  std::shared_ptr<image_transport::ImageTransport> & image_transport)
+: node_(node),
+  image_transport_(image_transport),
+  sensor_(sensor),
+  map_points_publisher_(nullptr),
+  pose_publisher_(nullptr),
+  service_server_(nullptr)
+{
+  name_of_node_ = node_->get_name();
   min_observations_per_point_ = 2;
-  sensor_ = sensor;
+
+  node_->declare_parameter("publish_pointcloud", rclcpp::ParameterValue(true));
+  node_->declare_parameter("publish_pose", rclcpp::ParameterValue(true));
+  node_->declare_parameter("publish_tf", rclcpp::ParameterValue(true));
+  node_->declare_parameter("pointcloud_frame_id", rclcpp::ParameterValue(std::string("map")));
+  node_->declare_parameter("camera_frame_id", rclcpp::ParameterValue(std::string("camera_link")));
+  node_->declare_parameter("map_file", rclcpp::ParameterValue(std::string("map.bin")));
+  node_->declare_parameter("voc_file", rclcpp::ParameterValue(std::string("file_not_set")));
+  node_->declare_parameter("load_map", rclcpp::ParameterValue(false));
+
+  node_->get_parameter("publish_pointcloud", publish_pointcloud_param_);
+  node_->get_parameter("publish_pose", publish_pose_param_);
+  node_->get_parameter("publish_tf", publish_tf_param_);
+  node_->get_parameter("pointcloud_frame_id", map_frame_id_param_);
+  node_->get_parameter("camera_frame_id", camera_frame_id_param_);
+  node_->get_parameter("map_file", map_file_name_param_);
+  node_->get_parameter("voc_file", voc_file_name_param_);
+  node_->get_parameter("load_map", load_map_param_);
+
+  // Create a parameters object to pass to the Tracking system
+  ORB_SLAM2::ORBParameters parameters{};
+  LoadOrbParameters (parameters);
+
+  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
+  auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
+    node_->get_node_base_interface(),
+    node_->get_node_timers_interface());
+  tf_buffer_->setCreateTimerInterface(timer_interface);
+  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+  tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(node_);
+
+  orb_slam_ = new ORB_SLAM2::System (voc_file_name_param_, sensor_, parameters, map_file_name_param_, load_map_param_);
+
+  service_server_ = node_->create_service<orb_slam2_ros::srv::SaveMap>(
+    "save_map",
+    std::bind(
+      &Node::SaveMapSrv, this,
+      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+  rendered_image_publisher_ = image_transport_->advertise(name_of_node_ + "/debug_image", 1);
+  if (publish_pointcloud_param_) {
+    map_points_publisher_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>(
+      "map_points", 1);
+  }
+
+  // Enable publishing camera's pose as PoseStamped message
+  if (publish_pose_param_) {
+    pose_publisher_ = node_->create_publisher<geometry_msgs::msg::PoseStamped>("pose", 1);
+  }
 }
 
 
@@ -19,42 +76,6 @@ Node::~Node () {
 
   delete orb_slam_;
 }
-
-void Node::Init () {
-  //static parameters
-  node_handle_.param(name_of_node_+ "/publish_pointcloud", publish_pointcloud_param_, true);
-  node_handle_.param(name_of_node_+ "/publish_pose", publish_pose_param_, true);
-  node_handle_.param(name_of_node_+ "/publish_tf", publish_tf_param_, true);
-  node_handle_.param<std::string>(name_of_node_+ "/pointcloud_frame_id", map_frame_id_param_, "map");
-  node_handle_.param<std::string>(name_of_node_+ "/camera_frame_id", camera_frame_id_param_, "camera_link");
-  node_handle_.param<std::string>(name_of_node_ + "/map_file", map_file_name_param_, "map.bin");
-  node_handle_.param<std::string>(name_of_node_ + "/voc_file", voc_file_name_param_, "file_not_set");
-  node_handle_.param(name_of_node_ + "/load_map", load_map_param_, false);
-
-   // Create a parameters object to pass to the Tracking system
-   ORB_SLAM2::ORBParameters parameters;
-   LoadOrbParameters (parameters);
-
-  orb_slam_ = new ORB_SLAM2::System (voc_file_name_param_, sensor_, parameters, map_file_name_param_, load_map_param_);
-
-  service_server_ = node_handle_.advertiseService(name_of_node_+"/save_map", &Node::SaveMapSrv, this);
-
-  //Setup dynamic reconfigure
-  dynamic_reconfigure::Server<orb_slam2_ros::dynamic_reconfigureConfig>::CallbackType dynamic_param_callback;
-  dynamic_param_callback = boost::bind(&Node::ParamsChangedCallback, this, _1, _2);
-  dynamic_param_server_.setCallback(dynamic_param_callback);
-
-  rendered_image_publisher_ = image_transport_.advertise (name_of_node_+"/debug_image", 1);
-  if (publish_pointcloud_param_) {
-    map_points_publisher_ = node_handle_.advertise<sensor_msgs::msg::PointCloud2> (name_of_node_+"/map_points", 1);
-  }
-
-  // Enable publishing camera's pose as PoseStamped message
-  if (publish_pose_param_) {
-    pose_publisher_ = node_handle_.advertise<geometry_msgs::msg::PoseStamped> (name_of_node_+"/pose", 1);
-  }
-}
-
 
 void Node::Update () {
   cv::Mat position = orb_slam_->GetCurrentPosition();
@@ -78,32 +99,37 @@ void Node::Update () {
 
 void Node::PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points) {
   sensor_msgs::msg::PointCloud2 cloud = MapPointsToPointCloud (map_points);
-  map_points_publisher_.publish (cloud);
+  map_points_publisher_->publish (cloud);
 }
 
 
 void Node::PublishPositionAsTransform (cv::Mat position) {
   if(publish_tf_param_){
-      tf2::Transform transform = TransformFromMat (position);
-      static tf2::TransformBroadcaster tf_broadcaster;
-      tf_broadcaster.sendTransform(tf2::StampedTransform(transform, current_frame_time_, map_frame_id_param_, camera_frame_id_param_));
+    tf2::Transform transform = TransformFromMat (position);
+    geometry_msgs::msg::TransformStamped tmp_tf_stamped;
+    tmp_tf_stamped.header.frame_id = map_frame_id_param_;
+    tmp_tf_stamped.header.stamp = current_frame_time_;
+    tmp_tf_stamped.child_frame_id = camera_frame_id_param_;
+    tf2::impl::Converter<false, true>::convert(transform, tmp_tf_stamped.transform);
+    tf_broadcaster_->sendTransform(tmp_tf_stamped);
   }
 }
 
 void Node::PublishPositionAsPoseStamped (cv::Mat position) {
-  tf::Transform grasp_tf = TransformFromMat (position);
-  tf::Stamped<tf::Pose> grasp_tf_pose(grasp_tf, current_frame_time_, map_frame_id_param_);
+  tf2::Transform grasp_tf = TransformFromMat (position);
   geometry_msgs::msg::PoseStamped pose_msg;
-  tf::poseStampedTFToMsg (grasp_tf_pose, pose_msg);
-  pose_publisher_.publish(pose_msg);
+  pose_msg.header.stamp = current_frame_time_;
+  pose_msg.header.frame_id = map_frame_id_param_;
+  tf2::toMsg(grasp_tf, pose_msg.pose);
+  pose_publisher_->publish(pose_msg);
 }
 
 
 void Node::PublishRenderedImage (cv::Mat image) {
-  std_msgs::Header header;
+  std_msgs::msg::Header header;
   header.stamp = current_frame_time_;
   header.frame_id = map_frame_id_param_;
-  const sensor_msgs::msg::ImagePtr rendered_image_msg = cv_bridge::CvImage(header, "bgr8", image).toImageMsg();
+  const sensor_msgs::msg::Image::SharedPtr rendered_image_msg = cv_bridge::CvImage(header, "bgr8", image).toImageMsg();
   rendered_image_publisher_.publish(rendered_image_msg);
 }
 
@@ -140,7 +166,7 @@ tf2::Transform Node::TransformFromMat (cv::Mat position_mat) {
   tf_camera_rotation = tf_orb_to_ros*tf_camera_rotation;
   tf_camera_translation = tf_orb_to_ros*tf_camera_translation;
 
-  return tf::Transform (tf_camera_rotation, tf_camera_translation);
+  return tf2::Transform (tf_camera_rotation, tf_camera_translation);
 }
 
 
@@ -190,90 +216,98 @@ sensor_msgs::msg::PointCloud2 Node::MapPointsToPointCloud (std::vector<ORB_SLAM2
   return cloud;
 }
 
+void Node::SaveMapSrv (const shared_ptr<rmw_request_id_t>,
+                      const shared_ptr<orb_slam2_ros::srv::SaveMap::Request> request,
+                      const shared_ptr<orb_slam2_ros::srv::SaveMap::Response> response) {
+  response->success = orb_slam_->SaveMap(request->name);
 
-void Node::ParamsChangedCallback(orb_slam2_ros::dynamic_reconfigureConfig &config, uint32_t level) {
-  orb_slam_->EnableLocalizationOnly (config.localize_only);
-  min_observations_per_point_ = config.min_observations_for_ros_map;
-
-  if (config.reset_map) {
-    orb_slam_->Reset();
-    config.reset_map = false;
-  }
-
-  orb_slam_->SetMinimumKeyFrames (config.min_num_kf_in_map);
-}
-
-
-bool Node::SaveMapSrv (orb_slam2_ros::SaveMap::Request &req, orb_slam2_ros::SaveMap::Response &res) {
-  res.success = orb_slam_->SaveMap(req.name);
-
-  if (res.success) {
-    RCLCPP_INFO(node->get_logger(),"Map was saved as " << req.name);
+  if (response->success) {
+    RCLCPP_INFO(node_->get_logger(), "Map was saved as %s", request->name.c_str());
   } else {
-    RCLCPP_ERROR(node->get_logger(),"Map could not be saved.");
+    RCLCPP_ERROR(node_->get_logger(), "Map could not be saved.");
   }
-
-  return res.success;
 }
-
 
 void Node::LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters) {
   //ORB SLAM configuration parameters
-  node_handle_.param(name_of_node_ + "/camera_fps", parameters.maxFrames, 30);
-  node_handle_.param(name_of_node_ + "/camera_rgb_encoding", parameters.RGB, true);
-  node_handle_.param(name_of_node_ + "/ORBextractor/nFeatures", parameters.nFeatures, 1200);
-  node_handle_.param(name_of_node_ + "/ORBextractor/scaleFactor", parameters.scaleFactor, static_cast<float>(1.2));
-  node_handle_.param(name_of_node_ + "/ORBextractor/nLevels", parameters.nLevels, 8);
-  node_handle_.param(name_of_node_ + "/ORBextractor/iniThFAST", parameters.iniThFAST, 20);
-  node_handle_.param(name_of_node_ + "/ORBextractor/minThFAST", parameters.minThFAST, 7);
+  node_->declare_parameter("camera_fps", rclcpp::ParameterValue(30));
+  node_->declare_parameter("camera_rgb_encoding", rclcpp::ParameterValue(true));
+  node_->declare_parameter("ORBextractor/nFeatures", rclcpp::ParameterValue(1200));
+  node_->declare_parameter("ORBextractor/scaleFactor", rclcpp::ParameterValue(1.2f));
+  node_->declare_parameter("ORBextractor/nLevels", rclcpp::ParameterValue(8));
+  node_->declare_parameter("ORBextractor/iniThFAST", rclcpp::ParameterValue(20));
+  node_->declare_parameter("ORBextractor/minThFAST", rclcpp::ParameterValue(7));
+  node_->declare_parameter("load_calibration_from_cam", rclcpp::ParameterValue(false));
+  node_->declare_parameter("ThDepth", rclcpp::ParameterValue(35.0f));
+  node_->declare_parameter("depth_map_factor", rclcpp::ParameterValue(1.0f));
 
-  bool load_calibration_from_cam = false;
-  node_handle_.param(name_of_node_ + "/load_calibration_from_cam", load_calibration_from_cam, false);
+  node_->get_parameter("camera_fps", parameters.maxFrames);
+  node_->get_parameter("camera_rgb_encoding", parameters.RGB);
+  node_->get_parameter("ORBextractor/nFeatures", parameters.nFeatures);
+  node_->get_parameter("ORBextractor/scaleFactor", parameters.scaleFactor);
+  node_->get_parameter("ORBextractor/nLevels", parameters.nLevels);
+  node_->get_parameter("ORBextractor/iniThFAST", parameters.iniThFAST);
+  node_->get_parameter("ORBextractor/minThFAST", parameters.minThFAST);
+
+  bool load_calibration_from_cam;
+  node_->get_parameter("load_calibration_from_cam", load_calibration_from_cam);
 
   if (sensor_== ORB_SLAM2::System::STEREO || sensor_==ORB_SLAM2::System::RGBD) {
-    node_handle_.param(name_of_node_ + "/ThDepth", parameters.thDepth, static_cast<float>(35.0));
-    node_handle_.param(name_of_node_ + "/depth_map_factor", parameters.depthMapFactor, static_cast<float>(1.0));
+    node_->get_parameter("ThDepth", parameters.thDepth);
+    node_->get_parameter("depth_map_factor", parameters.depthMapFactor);
   }
 
   if (load_calibration_from_cam) {
-    RCLCPP_INFO(node->get_logger(),"Listening for camera info on topic " << node_handle_.resolveName(camera_info_topic_));
-    sensor_msgs::msg::CameraInfo::ConstPtr camera_info = rclcpp::topic::waitForMessage<sensor_msgs::msg::CameraInfo>(camera_info_topic_, rclcpp::Duration(1000.0));
-    if(camera_info == nullptr){
-        RCLCPP_WARN(node->get_logger(),("Did not receive camera info before timeout, defaulting to launch file params.");
-    } else {
-      parameters.fx = camera_info->K[0];
-      parameters.fy = camera_info->K[4];
-      parameters.cx = camera_info->K[2];
-      parameters.cy = camera_info->K[5];
-
-      parameters.baseline = camera_info->P[3];
-
-      parameters.k1 = camera_info->D[0];
-      parameters.k2 = camera_info->D[1];
-      parameters.p1 = camera_info->D[2];
-      parameters.p2 = camera_info->D[3];
-      parameters.k3 = camera_info->D[4];
-      return;
-    }
+    RCLCPP_INFO(node_->get_logger(), "Listening for camera info on topic %s", camera_info_topic_.c_str());
+    return;
+//    sensor_msgs::msg::CameraInfo camera_info = rclcpp::topic::waitForMessage<sensor_msgs::msg::CameraInfo>(camera_info_topic_, rclcpp::Duration(1000.0));
+//    if(camera_info == nullptr){
+//        RCLCPP_WARN(node_->get_logger(), "Did not receive camera info before timeout, defaulting to launch file params.");
+//    } else {
+//      parameters.fx = camera_info.k[0];
+//      parameters.fy = camera_info.k[4];
+//      parameters.cx = camera_info.k[2];
+//      parameters.cy = camera_info.k[5];
+//
+//      parameters.baseline = camera_info.p[3];
+//
+//      parameters.k1 = camera_info.d[0];
+//      parameters.k2 = camera_info.d[1];
+//      parameters.p1 = camera_info.d[2];
+//      parameters.p2 = camera_info.d[3];
+//      parameters.k3 = camera_info.d[4];
+//      return;
+//    }
   }
+
+  node_->declare_parameter("camera_baseline", rclcpp::ParameterValue(parameters.baseline));
+  node_->declare_parameter("camera_fx", rclcpp::ParameterValue(parameters.fx));
+  node_->declare_parameter("camera_fy", rclcpp::ParameterValue(parameters.fy));
+  node_->declare_parameter("camera_cx", rclcpp::ParameterValue(parameters.cx));
+  node_->declare_parameter("camera_cy", rclcpp::ParameterValue(parameters.cy));
+  node_->declare_parameter("camera_k1", rclcpp::ParameterValue(parameters.k1));
+  node_->declare_parameter("camera_k2", rclcpp::ParameterValue(parameters.k2));
+  node_->declare_parameter("camera_p1", rclcpp::ParameterValue(parameters.p1));
+  node_->declare_parameter("camera_p2", rclcpp::ParameterValue(parameters.p2));
+  node_->declare_parameter("camera_k3", rclcpp::ParameterValue(parameters.k3));
 
   bool got_cam_calibration = true;
   if (sensor_== ORB_SLAM2::System::STEREO || sensor_==ORB_SLAM2::System::RGBD) {
-    got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_baseline", parameters.baseline);
+    got_cam_calibration &= node_->get_parameter("camera_baseline", parameters.baseline);
   }
 
-  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_fx", parameters.fx);
-  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_fy", parameters.fy);
-  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_cx", parameters.cx);
-  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_cy", parameters.cy);
-  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_k1", parameters.k1);
-  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_k2", parameters.k2);
-  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_p1", parameters.p1);
-  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_p2", parameters.p2);
-  got_cam_calibration &= node_handle_.getParam(name_of_node_ + "/camera_k3", parameters.k3);
+  got_cam_calibration &= node_->get_parameter("camera_fx", parameters.fx);
+  got_cam_calibration &= node_->get_parameter("camera_fy", parameters.fy);
+  got_cam_calibration &= node_->get_parameter("camera_cx", parameters.cx);
+  got_cam_calibration &= node_->get_parameter("camera_cy", parameters.cy);
+  got_cam_calibration &= node_->get_parameter("camera_k1", parameters.k1);
+  got_cam_calibration &= node_->get_parameter("camera_k2", parameters.k2);
+  got_cam_calibration &= node_->get_parameter("camera_p1", parameters.p1);
+  got_cam_calibration &= node_->get_parameter("camera_p2", parameters.p2);
+  got_cam_calibration &= node_->get_parameter("camera_k3", parameters.k3);
 
   if (!got_cam_calibration) {
-    RCLCPP_ERROR(node->get_logger(),"Failed to get camera calibration parameters from the launch file.");
+    RCLCPP_ERROR(node_->get_logger(), "Failed to get camera calibration parameters from the launch file.");
     throw std::runtime_error("No cam calibration");
   }
 }

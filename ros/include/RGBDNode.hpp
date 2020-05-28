@@ -42,16 +42,23 @@
 
 class RGBDNode : public Node
 {
-  public:
-    RGBDNode (const ORB_SLAM2::System::eSensor sensor, auto node = rclcpp::Node::make_shared("RGBD"), image_transport::ImageTransport &image_transport);
-    ~RGBDNode ();
-    void ImageCallback (const sensor_msgs::msg::ImageConstPtr& msgRGB,const sensor_msgs::msg::ImageConstPtr& msgD);
+public:
+  RGBDNode(
+    const ORB_SLAM2::System::eSensor sensor,
+    rclcpp::Node::SharedPtr & node,
+    std::shared_ptr<image_transport::ImageTransport> & image_transport);
 
-  private:
-    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::Image> sync_pol;
-    message_filters::Subscriber<sensor_msgs::msg::Image> *rgb_subscriber_;
-    message_filters::Subscriber<sensor_msgs::msg::Image> *depth_subscriber_;
-    message_filters::Synchronizer<sync_pol> *sync_;
+  ~RGBDNode();
+
+  void ImageCallback(
+    const sensor_msgs::msg::Image::ConstSharedPtr & msgRGB,
+    const sensor_msgs::msg::Image::ConstSharedPtr & msgD);
+
+private:
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::Image> sync_pol;
+  std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> rgb_subscriber_;
+  std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> depth_subscriber_;
+  message_filters::Synchronizer<sync_pol> *sync_;
 };
 
 #endif //ORBSLAM2_ROS_RGBDODE_H_

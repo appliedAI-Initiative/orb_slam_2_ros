@@ -6,63 +6,68 @@
 
 int main(int argc, char **argv)
 {
-    rclcpp::init(argc, argv);
+  rclcpp::init(argc, argv);
 
-    if(argc > 1) {
-        RCLCPP_WARN(this->get_logger(), "Arguments supplied via command line are neglected.");
-    }
-    auto options = rclcpp::NodeOptions();
-    auto node = rclcpp::Node::make_shared("Stereo");
-    image_transport::ImageTransport image_transport (node);
+  auto options = rclcpp::NodeOptions();
+  auto node = rclcpp::Node::make_shared("Stereo");
 
-    // initialize
-    StereoNode node (ORB_SLAM2::System::STEREO, node, image_transport);
+  if(argc > 1) {
+    RCLCPP_WARN(node->get_logger(), "Arguments supplied via command line are neglected.");
+  }
 
-    node.Init();
+  auto image_transport = std::make_shared<image_transport::ImageTransport>(node);
 
-    rclcpp::spin(StereoNode->get_node_base_interface());
+  // initialize
+  StereoNode stereo_node(ORB_SLAM2::System::STEREO, node, image_transport);
 
-    return 0;
+  rclcpp::spin(node->get_node_base_interface());
+
+  return 0;
 }
 
+StereoNode::StereoNode(const ORB_SLAM2::System::eSensor sensor,
+                       rclcpp::Node::SharedPtr & node,
+                       std::shared_ptr<image_transport::ImageTransport> & image_transport)
+: Node (sensor, node, image_transport)
+{
+  left_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(node_, "image_left/image_color_rect");
+  right_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(node_, "image_right/image_color_rect");
+  camera_info_topic_ = "image_left/camera_info";
 
-StereoNode::StereoNode (const ORB_SLAM2::System::eSensor sensor, rclcpp::NodeOptions options, image_transport::ImageTransport &image_transport) : Node (sensor, node, image_transport) {
-    left_sub_ = new message_filters::Subscriber<sensor_msgs::msg::Image> (node, "image_left/image_color_rect", 1);
-    right_sub_ = new message_filters::Subscriber<sensor_msgs::msg::Image> (node, "image_right/image_color_rect", 1);
-    camera_info_topic_ = "image_left/camera_info";
-
-    sync_ = new message_filters::Synchronizer<sync_pol> (sync_pol(10), *left_sub_, *right_sub_);
-    sync_->registerCallback(boost::bind(&StereoNode::ImageCallback, this, _1, _2));
+  sync_ = new message_filters::Synchronizer<sync_pol> (sync_pol(10), *left_sub_, *right_sub_);
+  sync_->registerCallback(std::bind(&StereoNode::ImageCallback, this,
+    std::placeholders::_1, std::placeholders::_2));
 }
 
 
 StereoNode::~StereoNode () {
-    delete left_sub_;
-    delete right_sub_;
-    delete sync_;
+  delete sync_;
 }
 
 
-void StereoNode::ImageCallback (const sensor_msgs::msg::ImageConstSharedPtr msgLeft, const sensor_msgs::msg::ImageConstSharedPtr msgRight) {
+void StereoNode::ImageCallback (
+  const sensor_msgs::msg::Image::ConstSharedPtr & msgLeft,
+  const sensor_msgs::msg::Image::ConstSharedPtr & msgRight) {
   cv_bridge::CvImageConstPtr cv_ptrLeft;
   try {
-      cv_ptrLeft = cv_bridge::toCvShare(msgLeft);
+    cv_ptrLeft = cv_bridge::toCvShare(msgLeft);
   } catch (cv_bridge::Exception& e) {
-      RCLCPP_ERROR(node->get_logger(), "cv_bridge exception: %s", e.what());
-      return;
+    RCLCPP_ERROR(node_->get_logger(), "cv_bridge exception: %s", e.what());
+    return;
   }
 
   cv_bridge::CvImageConstPtr cv_ptrRight;
   try {
-      cv_ptrRight = cv_bridge::toCvShare(msgRight);
+    cv_ptrRight = cv_bridge::toCvShare(msgRight);
   } catch (cv_bridge::Exception& e) {
-      RCLCPP_ERROR(node->get_logger(), "cv_bridge exception: %s", e.what());
-      return;
+    RCLCPP_ERROR(node_->get_logger(), "cv_bridge exception: %s", e.what());
+    return;
   }
 
   current_frame_time_ = msgLeft->header.stamp;
 
-  orb_slam_->TrackStereo(cv_ptrLeft->image, cv_ptrRight->image, cv_ptrLeft->header.stamp.toSec());
+  rclcpp::Time msg_time = cv_ptrLeft->header.stamp;
+  orb_slam_->TrackStereo(cv_ptrLeft->image, cv_ptrRight->image, msg_time.seconds());
 
-  Update ();
+  Update();
 }

@@ -45,9 +45,9 @@ namespace ORB_SLAM2
 
 Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
         Map *pMap, KeyFrameDatabase* pKFDB, const int sensor, ORBParameters& parameters):
-    mState(NO_IMAGES_YET), mSensor(sensor), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
-    mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer*>(NULL)), mpSystem(pSys),
-    mpFrameDrawer(pFrameDrawer), mpMap(pMap), mnLastRelocFrameId(0), mnMinimumKeyFrames(5)
+    mState(NO_IMAGES_YET), mSensor(sensor), mbOnlyTracking(false), mbVO(false), mnMinimumKeyFrames(5),
+    mpORBVocabulary(pVoc), mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer*>(NULL)),
+    mpSystem(pSys), mpFrameDrawer(pFrameDrawer), mpMap(pMap), mnLastRelocFrameId(0)
 {
     //Unpack all the parameters from the parameters struct (this replaces loading in a second configuration file)
     mMaxFrames = parameters.maxFrames;
@@ -452,7 +452,7 @@ void Tracking::Track()
         // Reset if the camera get lost soon after initialization
         if(mState==LOST)
         {
-            if(mpMap->KeyFramesInMap()<=mnMinimumKeyFrames)
+            if(mpMap->KeyFramesInMap() <= (unsigned int) mnMinimumKeyFrames)
             {
                 cout << "Track lost soon after initialisation, reseting..." << endl;
                 mpSystem->Reset();
