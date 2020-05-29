@@ -79,7 +79,7 @@ namespace g2o {
   Cache::CacheKey Cache::key() const {
     Factory* factory=Factory::instance();
     return CacheKey(factory->tag(this), _parameters);
-  };
+  }
 
   
   void Cache::update(){

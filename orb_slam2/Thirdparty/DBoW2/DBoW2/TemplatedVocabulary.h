@@ -1569,9 +1569,9 @@ void TemplatedVocabulary<TDescriptor,F>::saveToBinFile(const std::string &filena
             f.write((const char*)& one ,sizeof( one ));
         else
             f.write((const char*)& zero ,sizeof( zero ));
-        unsigned char array[F::L]; // the number of elements is stored in F::L
-        F::toArray8U(node.descriptor,(unsigned char *)array);
-        f.write((char*)array,(long)F::L);
+        std::vector<unsigned char> array(F::L); // the number of elements is stored in F::L
+        F::toArray8U(node.descriptor,(unsigned char *)array.data());
+        f.write((char*)array.data(),(long)F::L);
         f.write((const char*)& node.weight ,sizeof( node.weight ));
     }
     f.close();

@@ -258,4 +258,4 @@ namespace g2o{
     return 1.;
   }
 
-};
+}

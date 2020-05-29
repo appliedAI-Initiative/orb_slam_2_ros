@@ -80,7 +80,7 @@ namespace g2o {
     os << PTHING(timeMarginals);
 
     return os;
-  };
+  }
 
   void G2OBatchStatistics::setGlobalStats(G2OBatchStatistics* b)
   {
