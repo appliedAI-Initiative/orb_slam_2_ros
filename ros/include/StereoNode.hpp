@@ -7,7 +7,6 @@
 #include <opencv2/imgproc/imgproc_c.h>
 #include <opencv2/core/types.hpp>
 
-
 #include <rclcpp/rclcpp.hpp>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
@@ -26,9 +25,8 @@ class StereoNode : public Node
 {
 public:
   StereoNode(
-    const ORB_SLAM2::System::eSensor sensor,
-    rclcpp::Node::SharedPtr & node,
-    std::shared_ptr<image_transport::ImageTransport> & image_transport);
+    const std::string & node_name,
+    const rclcpp::NodeOptions & node_options);
 
   ~StereoNode();
 
@@ -42,6 +40,9 @@ private:
   std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> left_sub_;
   std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> right_sub_;
   message_filters::Synchronizer<sync_pol> *sync_;
+
+  std::string left_image_topic_;
+  std::string right_image_topic_;
 
   int resize_horizontal;
   int resize_vertical;

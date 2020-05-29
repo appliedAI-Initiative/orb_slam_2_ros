@@ -53,13 +53,13 @@
 #include "System.h"
 
 
-class Node
+class Node : public rclcpp::Node
 {
 public:
   Node(
-    ORB_SLAM2::System::eSensor sensor,
-    rclcpp::Node::SharedPtr & node,
-    std::shared_ptr<image_transport::ImageTransport> & image_transport);
+    const std::string & node_name,
+    const rclcpp::NodeOptions & node_options,
+    const ORB_SLAM2::System::eSensor & sensor);
 
   ~Node ();
 
@@ -68,7 +68,7 @@ protected:
   ORB_SLAM2::System* orb_slam_;
   rclcpp::Time current_frame_time_;
   std::string camera_info_topic_;
-  rclcpp::Node::SharedPtr node_;
+  std::shared_ptr<image_transport::ImageTransport> image_transport_;
 
 private:
   void PublishMapPoints(std::vector<ORB_SLAM2::MapPoint*> map_points);
@@ -80,12 +80,10 @@ private:
     const shared_ptr<orb_slam2_ros::srv::SaveMap::Request> request,
     const shared_ptr<orb_slam2_ros::srv::SaveMap::Response> response);
   void LoadOrbParameters(ORB_SLAM2::ORBParameters& parameters);
+  void cameraInfoCallback(sensor_msgs::msg::CameraInfo::SharedPtr msg);
 
   tf2::Transform TransformFromMat(cv::Mat position_mat);
   sensor_msgs::msg::PointCloud2 MapPointsToPointCloud(std::vector<ORB_SLAM2::MapPoint*> map_points);
-
-  std::string name_of_node_;
-  std::shared_ptr<image_transport::ImageTransport> image_transport_;
 
   ORB_SLAM2::System::eSensor sensor_;
 
@@ -98,6 +96,10 @@ private:
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+
+  std::string node_name_;
+
+  sensor_msgs::msg::CameraInfo::SharedPtr camera_info_msg_;
 
   std::string map_frame_id_param_;
   std::string camera_frame_id_param_;

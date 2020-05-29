@@ -9,41 +9,44 @@ int main(int argc, char **argv)
   rclcpp::init(argc, argv);
 
   auto options = rclcpp::NodeOptions();
-  auto node = rclcpp::Node::make_shared("Stereo");
+  auto node = std::make_shared<StereoNode>("Stereo", options);
 
   if(argc > 1) {
     RCLCPP_WARN(node->get_logger(), "Arguments supplied via command line are neglected.");
   }
 
-  auto image_transport = std::make_shared<image_transport::ImageTransport>(node);
-
-  // initialize
-  StereoNode stereo_node(ORB_SLAM2::System::STEREO, node, image_transport);
-
   rclcpp::spin(node->get_node_base_interface());
+
+  rclcpp::shutdown();
 
   return 0;
 }
 
-StereoNode::StereoNode(const ORB_SLAM2::System::eSensor sensor,
-                       rclcpp::Node::SharedPtr & node,
-                       std::shared_ptr<image_transport::ImageTransport> & image_transport)
-: Node (sensor, node, image_transport)
+StereoNode::StereoNode(const std::string & node_name,
+                       const rclcpp::NodeOptions & node_options)
+: Node (node_name, node_options, ORB_SLAM2::System::STEREO)
 {
-  left_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(node_, "image_left/image_color_rect");
-  right_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(node_, "image_right/image_color_rect");
-  camera_info_topic_ = "image_left/camera_info";
+  declare_parameter("left_image_topic", rclcpp::ParameterValue(std::string("image_left/image_color_rect")));
+  declare_parameter("right_image_topic", rclcpp::ParameterValue(std::string("image_right/image_color_rect")));
+  declare_parameter("camera_info_topic", rclcpp::ParameterValue(std::string("image_left/camera_info")));
+
+  get_parameter("left_image_topic", left_image_topic_);
+  get_parameter("right_image_topic", right_image_topic_);
+  get_parameter("camera_info_topic", camera_info_topic_ );
+
+  left_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(
+    shared_from_this(), left_image_topic_);
+  right_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(
+    shared_from_this(), right_image_topic_);
 
   sync_ = new message_filters::Synchronizer<sync_pol> (sync_pol(10), *left_sub_, *right_sub_);
   sync_->registerCallback(std::bind(&StereoNode::ImageCallback, this,
     std::placeholders::_1, std::placeholders::_2));
 }
 
-
 StereoNode::~StereoNode () {
   delete sync_;
 }
-
 
 void StereoNode::ImageCallback (
   const sensor_msgs::msg::Image::ConstSharedPtr & msgLeft,
@@ -52,7 +55,7 @@ void StereoNode::ImageCallback (
   try {
     cv_ptrLeft = cv_bridge::toCvShare(msgLeft);
   } catch (cv_bridge::Exception& e) {
-    RCLCPP_ERROR(node_->get_logger(), "cv_bridge exception: %s", e.what());
+    RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
     return;
   }
 
@@ -60,7 +63,7 @@ void StereoNode::ImageCallback (
   try {
     cv_ptrRight = cv_bridge::toCvShare(msgRight);
   } catch (cv_bridge::Exception& e) {
-    RCLCPP_ERROR(node_->get_logger(), "cv_bridge exception: %s", e.what());
+    RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
     return;
   }
 

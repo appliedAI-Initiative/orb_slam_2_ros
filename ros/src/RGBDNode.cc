@@ -5,16 +5,11 @@ int main(int argc, char **argv)
   rclcpp::init(argc, argv);
 
   auto options = rclcpp::NodeOptions();
-  auto node = rclcpp::Node::make_shared("RGBD");
+  auto node = std::make_shared<RGBDNode>("RGBD", options);
 
   if(argc > 1) {
     RCLCPP_WARN(node->get_logger(), "Arguments supplied via command line are neglected.");
   }
-
-  // Create SLAM system. It initializes all system threads and gets ready to process frames.
-  auto image_transport = std::make_shared<image_transport::ImageTransport>(node);
-
-  RGBDNode rgbd_node(ORB_SLAM2::System::RGBD, node, image_transport);
 
   rclcpp::spin(node->get_node_base_interface());
 
@@ -23,32 +18,39 @@ int main(int argc, char **argv)
   return 0;
 }
 
-RGBDNode::RGBDNode(const ORB_SLAM2::System::eSensor sensor,
-                   rclcpp::Node::SharedPtr & node,
-                   std::shared_ptr<image_transport::ImageTransport> & image_transport)
-: Node(sensor, node, image_transport) {
-  rgb_subscriber_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(node_, "/camera/rgb/image_raw");
-  depth_subscriber_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(node_, "/camera/depth_registered/image_raw");
-  camera_info_topic_ = "/camera/rgb/camera_info";
+RGBDNode::RGBDNode(const std::string & node_name,
+                   const rclcpp::NodeOptions & node_options)
+: Node(node_name, node_options, ORB_SLAM2::System::RGBD) {
+  declare_parameter("rgb_image_topic", rclcpp::ParameterValue(std::string("/camera/rgb/image_raw")));
+  declare_parameter("depth_image_topic", rclcpp::ParameterValue(std::string("/camera/depth_registered/image_raw")));
+  declare_parameter("camera_info_topic", rclcpp::ParameterValue(std::string("/camera/rgb/camera_info")));
+
+  get_parameter("rgb_image_topic", rgb_image_topic_);
+  get_parameter("depth_image_topic", depth_image_topic_);
+  get_parameter("camera_info_topic", camera_info_topic_ );
+
+  rgb_subscriber_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(
+    shared_from_this(), rgb_image_topic_);
+  depth_subscriber_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(
+    shared_from_this(), depth_image_topic_);
 
   sync_ = new message_filters::Synchronizer<sync_pol> (sync_pol(10), *rgb_subscriber_, *depth_subscriber_);
   sync_->registerCallback(std::bind(&RGBDNode::ImageCallback, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-
 RGBDNode::~RGBDNode () {
   delete sync_;
 }
 
-void RGBDNode::ImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr &msgRGB,
-                             const sensor_msgs::msg::Image::ConstSharedPtr &msgD)
+void RGBDNode::ImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msgRGB,
+                             const sensor_msgs::msg::Image::ConstSharedPtr & msgD)
 {
   // Copy the ros image message to cv::Mat.
   cv_bridge::CvImageConstPtr cv_ptrRGB;
   try {
       cv_ptrRGB = cv_bridge::toCvShare(msgRGB);
   } catch (cv_bridge::Exception& e) {
-      RCLCPP_ERROR(node_->get_logger(), "cv_bridge exception: %s", e.what());
+      RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
       return;
   }
 
@@ -56,7 +58,7 @@ void RGBDNode::ImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr &msgR
   try {
     cv_ptrD = cv_bridge::toCvShare(msgD);
   } catch (cv_bridge::Exception& e) {
-      RCLCPP_ERROR(node_->get_logger(), "cv_bridge exception: %s", e.what());
+      RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
       return;
   }
 

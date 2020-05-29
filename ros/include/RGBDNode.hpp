@@ -44,9 +44,8 @@ class RGBDNode : public Node
 {
 public:
   RGBDNode(
-    const ORB_SLAM2::System::eSensor sensor,
-    rclcpp::Node::SharedPtr & node,
-    std::shared_ptr<image_transport::ImageTransport> & image_transport);
+    const std::string & node_name,
+    const rclcpp::NodeOptions & node_options);
 
   ~RGBDNode();
 
@@ -59,6 +58,9 @@ private:
   std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> rgb_subscriber_;
   std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> depth_subscriber_;
   message_filters::Synchronizer<sync_pol> *sync_;
+
+  std::string rgb_image_topic_;
+  std::string depth_image_topic_;
 };
 
 #endif //ORBSLAM2_ROS_RGBDODE_H_

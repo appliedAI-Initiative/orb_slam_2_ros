@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
 project(orb_slam2_ros)
 
+IF(NOT CMAKE_BUILD_TYPE)
+  SET(CMAKE_BUILD_TYPE Release)
+endif()
+
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
@@ -19,12 +23,25 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_common REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+
+set(dependencies
+  rclcpp
+  std_msgs
+  sensor_msgs
+  geometry_msgs
+  cv_bridge
+  image_common
+  image_transport
+  tf2_geometry_msgs
+  tf2_ros
+)
 
 find_package(OpenCV 4.0 QUIET)
 if(NOT OpenCV_FOUND)
@@ -102,14 +119,7 @@ add_executable(${PROJECT_NAME}_mono
   ros/src/Node.cc
 )
 ament_target_dependencies(${PROJECT_NAME}_mono
-  rclcpp
-  std_msgs
-  cv_bridge
-  image_common
-  image_transport
-  tf2_geometry_msgs
-  tf2_ros
-  sensor_msgs
+  ${dependencies}
 )
 target_link_libraries(${PROJECT_NAME}_mono
   orb_slam2_ros_core
@@ -124,14 +134,7 @@ add_executable (${PROJECT_NAME}_stereo
   ros/src/Node.cc
 )
 ament_target_dependencies(${PROJECT_NAME}_stereo
-  rclcpp
-  std_msgs
-  cv_bridge
-  image_common
-  image_transport
-  tf2_geometry_msgs
-  tf2_ros
-  sensor_msgs
+  ${dependencies}
 )
 target_link_libraries(${PROJECT_NAME}_stereo
   orb_slam2_ros_core
@@ -146,14 +149,7 @@ add_executable(${PROJECT_NAME}_rgbd
   ros/src/Node.cc
 )
 ament_target_dependencies(${PROJECT_NAME}_rgbd
-  rclcpp
-  std_msgs
-  cv_bridge
-  image_common
-  image_transport
-  tf2_geometry_msgs
-  tf2_ros
-  sensor_msgs
+  ${dependencies}
 )
 target_link_libraries(${PROJECT_NAME}_rgbd
   orb_slam2_ros_core
@@ -190,6 +186,11 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_include_directories(include)
-ament_export_dependencies(rclcpp std_msgs cv_bridge image_common tf2_ros sensor_msgs rosidl_default_runtime DBoW2 g2o)
+ament_export_dependencies(
+  ${dependencies}
+  rosidl_default_runtime
+  DBoW2
+  g2o
+)
 ament_export_libraries(orb_slam2_ros_core libDBoW2 libg2o)
 ament_package()
