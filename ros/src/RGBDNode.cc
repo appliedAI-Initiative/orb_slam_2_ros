@@ -41,8 +41,10 @@ int main(int argc, char ** argv)
 RGBDNode::RGBDNode(
   const std::string & node_name,
   const rclcpp::NodeOptions & node_options)
-: Node(node_name, node_options, ORB_SLAM2::System::RGBD)
+: Node(node_name, node_options)
 {
+  Node::init(ORB_SLAM2::System::RGBD);
+
   declare_parameter("rgb_image_topic",
     rclcpp::ParameterValue(std::string("/camera/rgb/image_raw")));
   declare_parameter("depth_image_topic",

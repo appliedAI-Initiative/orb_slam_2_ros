@@ -24,11 +24,9 @@
 
 Node::Node(
   const std::string & node_name,
-  const rclcpp::NodeOptions & node_options,
-  const ORB_SLAM2::System::eSensor & sensor)
+  const rclcpp::NodeOptions & node_options)
 : rclcpp::Node(node_name, node_options),
   image_transport_(nullptr),
-  sensor_(sensor),
   map_points_publisher_(nullptr),
   pose_publisher_(nullptr),
   node_name_(node_name),
@@ -43,6 +41,22 @@ Node::Node(
   declare_parameter("voc_file", rclcpp::ParameterValue(std::string("file_not_set")));
   declare_parameter("load_map", rclcpp::ParameterValue(false));
 
+  // ORB SLAM configuration parameters
+  declare_parameter("camera_fps", rclcpp::ParameterValue(30));
+  declare_parameter("camera_rgb_encoding", rclcpp::ParameterValue(true));
+  declare_parameter("ORBextractor/nFeatures", rclcpp::ParameterValue(1200));
+  declare_parameter("ORBextractor/scaleFactor", rclcpp::ParameterValue(1.2f));
+  declare_parameter("ORBextractor/nLevels", rclcpp::ParameterValue(8));
+  declare_parameter("ORBextractor/iniThFAST", rclcpp::ParameterValue(20));
+  declare_parameter("ORBextractor/minThFAST", rclcpp::ParameterValue(7));
+  declare_parameter("load_calibration_from_cam", rclcpp::ParameterValue(false));
+  declare_parameter("cam_info_timeout", rclcpp::ParameterValue(100));
+  declare_parameter("ThDepth", rclcpp::ParameterValue(35.0f));
+  declare_parameter("depth_map_factor", rclcpp::ParameterValue(1.0f));
+}
+
+void Node::init(const ORB_SLAM2::System::eSensor & sensor)
+{
   get_parameter("publish_pointcloud", publish_pointcloud_param_);
   get_parameter("publish_pose", publish_pose_param_);
   get_parameter("publish_tf", publish_tf_param_);
@@ -51,6 +65,8 @@ Node::Node(
   get_parameter("map_file", map_file_name_param_);
   get_parameter("voc_file", voc_file_name_param_);
   get_parameter("load_map", load_map_param_);
+
+  sensor_ = sensor;
 
   image_transport_ = std::make_shared<image_transport::ImageTransport>(shared_from_this());
 
@@ -90,7 +106,6 @@ Node::Node(
     pose_publisher_ = create_publisher<geometry_msgs::msg::PoseStamped>("pose", 1);
   }
 }
-
 
 Node::~Node()
 {
@@ -274,19 +289,6 @@ void Node::cameraInfoCallback(sensor_msgs::msg::CameraInfo::SharedPtr msg)
 
 void Node::LoadOrbParameters(ORB_SLAM2::ORBParameters & parameters)
 {
-  // ORB SLAM configuration parameters
-  declare_parameter("camera_fps", rclcpp::ParameterValue(30));
-  declare_parameter("camera_rgb_encoding", rclcpp::ParameterValue(true));
-  declare_parameter("ORBextractor/nFeatures", rclcpp::ParameterValue(1200));
-  declare_parameter("ORBextractor/scaleFactor", rclcpp::ParameterValue(1.2f));
-  declare_parameter("ORBextractor/nLevels", rclcpp::ParameterValue(8));
-  declare_parameter("ORBextractor/iniThFAST", rclcpp::ParameterValue(20));
-  declare_parameter("ORBextractor/minThFAST", rclcpp::ParameterValue(7));
-  declare_parameter("load_calibration_from_cam", rclcpp::ParameterValue(false));
-  declare_parameter("cam_info_timeout", rclcpp::ParameterValue(100));
-  declare_parameter("ThDepth", rclcpp::ParameterValue(35.0f));
-  declare_parameter("depth_map_factor", rclcpp::ParameterValue(1.0f));
-
   get_parameter("camera_fps", parameters.maxFrames);
   get_parameter("camera_rgb_encoding", parameters.RGB);
   get_parameter("ORBextractor/nFeatures", parameters.nFeatures);

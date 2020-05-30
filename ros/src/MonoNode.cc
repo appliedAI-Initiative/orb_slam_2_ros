@@ -42,8 +42,10 @@ int main(int argc, char ** argv)
 MonoNode::MonoNode(
   const std::string & node_name,
   const rclcpp::NodeOptions & node_options)
-: Node(node_name, node_options, ORB_SLAM2::System::MONOCULAR)
+: Node(node_name, node_options)
 {
+  Node::init(ORB_SLAM2::System::MONOCULAR);
+
   declare_parameter("image_topic", rclcpp::ParameterValue(std::string("/camera/image_raw")));
   declare_parameter("camera_info_topic",
     rclcpp::ParameterValue(std::string("/camera/camera_info")));

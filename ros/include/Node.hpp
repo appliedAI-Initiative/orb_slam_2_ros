@@ -62,8 +62,9 @@ class Node : public rclcpp::Node
 public:
   Node(
     const std::string & node_name,
-    const rclcpp::NodeOptions & node_options,
-    const ORB_SLAM2::System::eSensor & sensor);
+    const rclcpp::NodeOptions & node_options);
+
+  void init(const ORB_SLAM2::System::eSensor & sensor);
 
   ~Node();
 

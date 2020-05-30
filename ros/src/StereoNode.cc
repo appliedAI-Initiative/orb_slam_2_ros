@@ -45,8 +45,10 @@ int main(int argc, char ** argv)
 StereoNode::StereoNode(
   const std::string & node_name,
   const rclcpp::NodeOptions & node_options)
-: Node(node_name, node_options, ORB_SLAM2::System::STEREO)
+: Node(node_name, node_options)
 {
+  Node::init(ORB_SLAM2::System::STEREO);
+
   declare_parameter("left_image_topic",
     rclcpp::ParameterValue(std::string("image_left/image_color_rect")));
   declare_parameter("right_image_topic",
