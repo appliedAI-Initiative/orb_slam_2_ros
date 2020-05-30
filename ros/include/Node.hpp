@@ -18,15 +18,32 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ORBSLAM2_ROS_NODE_H_
-#define ORBSLAM2_ROS_NODE_H_
+#ifndef NODE_HPP_
+#define NODE_HPP_
 
-#include <vector>
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp/time.hpp>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
+
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/time.hpp>
 #include <opencv2/core/core.hpp>
+
+#include <sensor_msgs/image_encodings.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <geometry_msgs/msg/transform.hpp>
+
+#include <vector>
+#include <string>
+#include <memory>
+
+#include "System.h"
 
 #include "tf2/convert.h"
 #include "tf2/LinearMath/Transform.h"
@@ -40,19 +57,6 @@
 
 #include "orb_slam2_ros/srv/save_map.hpp"
 
-#include <message_filters/subscriber.h>
-#include <message_filters/time_synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
-#include <sensor_msgs/image_encodings.hpp>
-#include <sensor_msgs/msg/point_cloud2.hpp>
-#include <sensor_msgs/msg/camera_info.hpp>
-#include <geometry_msgs/msg/pose_stamped.hpp>
-#include <geometry_msgs/msg/transform_stamped.hpp>
-#include <geometry_msgs/msg/transform.hpp>
-
-#include "System.h"
-
-
 class Node : public rclcpp::Node
 {
 public:
@@ -61,17 +65,17 @@ public:
     const rclcpp::NodeOptions & node_options,
     const ORB_SLAM2::System::eSensor & sensor);
 
-  ~Node ();
+  ~Node();
 
 protected:
-  void Update ();
-  ORB_SLAM2::System* orb_slam_;
+  void Update();
+  ORB_SLAM2::System * orb_slam_;
   rclcpp::Time current_frame_time_;
   std::string camera_info_topic_;
   std::shared_ptr<image_transport::ImageTransport> image_transport_;
 
 private:
-  void PublishMapPoints(std::vector<ORB_SLAM2::MapPoint*> map_points);
+  void PublishMapPoints(std::vector<ORB_SLAM2::MapPoint *> map_points);
   void PublishPositionAsTransform(cv::Mat position);
   void PublishPositionAsPoseStamped(cv::Mat position);
   void PublishRenderedImage(cv::Mat image);
@@ -79,11 +83,12 @@ private:
     const shared_ptr<rmw_request_id_t>/*request_header*/,
     const shared_ptr<orb_slam2_ros::srv::SaveMap::Request> request,
     const shared_ptr<orb_slam2_ros::srv::SaveMap::Response> response);
-  void LoadOrbParameters(ORB_SLAM2::ORBParameters& parameters);
+  void LoadOrbParameters(ORB_SLAM2::ORBParameters & parameters);
   void cameraInfoCallback(sensor_msgs::msg::CameraInfo::SharedPtr msg);
 
   tf2::Transform TransformFromMat(cv::Mat position_mat);
-  sensor_msgs::msg::PointCloud2 MapPointsToPointCloud(std::vector<ORB_SLAM2::MapPoint*> map_points);
+  sensor_msgs::msg::PointCloud2 MapPointsToPointCloud(
+    std::vector<ORB_SLAM2::MapPoint *> map_points);
 
   ORB_SLAM2::System::eSensor sensor_;
 
@@ -112,4 +117,4 @@ private:
   int min_observations_per_point_;
 };
 
-#endif //ORBSLAM2_ROS_NODE_H_
+#endif  // NODE_HPP_

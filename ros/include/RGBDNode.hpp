@@ -18,13 +18,8 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ORBSLAM2_ROS_RGBDODE_H_
-#define ORBSLAM2_ROS_RGBDODE_H_
-
-#include <iostream>
-#include <algorithm>
-#include <fstream>
-#include <chrono>
+#ifndef RGBDNODE_HPP_
+#define RGBDNODE_HPP_
 
 #include <rclcpp/rclcpp.hpp>
 #include <message_filters/subscriber.h>
@@ -36,9 +31,16 @@
 #include <opencv2/core/core.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 
-#include "System.h"
-#include "Node.hpp"
+#include <iostream>
+#include <algorithm>
+#include <fstream>
+#include <chrono>
+#include <string>
+#include <memory>
 
+#include "System.h"
+
+#include "Node.hpp"
 
 class RGBDNode : public Node
 {
@@ -54,13 +56,14 @@ public:
     const sensor_msgs::msg::Image::ConstSharedPtr & msgD);
 
 private:
-  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::Image> sync_pol;
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image,
+      sensor_msgs::msg::Image> sync_pol;
   std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> rgb_subscriber_;
   std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> depth_subscriber_;
-  message_filters::Synchronizer<sync_pol> *sync_;
+  message_filters::Synchronizer<sync_pol> * sync_;
 
   std::string rgb_image_topic_;
   std::string depth_image_topic_;
 };
 
-#endif //ORBSLAM2_ROS_RGBDODE_H_
+#endif  // RGBDNODE_HPP_
