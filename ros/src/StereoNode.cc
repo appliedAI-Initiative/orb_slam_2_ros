@@ -31,6 +31,8 @@ int main(int argc, char ** argv)
   auto options = rclcpp::NodeOptions();
   auto node = std::make_shared<StereoNode>("Stereo", options);
 
+  node->init();
+
   if (argc > 1) {
     RCLCPP_WARN(node->get_logger(), "Arguments supplied via command line are neglected.");
   }
@@ -47,14 +49,17 @@ StereoNode::StereoNode(
   const rclcpp::NodeOptions & node_options)
 : Node(node_name, node_options)
 {
-  Node::init(ORB_SLAM2::System::STEREO);
-
   declare_parameter("left_image_topic",
     rclcpp::ParameterValue(std::string("image_left/image_color_rect")));
   declare_parameter("right_image_topic",
     rclcpp::ParameterValue(std::string("image_right/image_color_rect")));
   declare_parameter("camera_info_topic",
     rclcpp::ParameterValue(std::string("image_left/camera_info")));
+}
+
+void StereoNode::init()
+{
+  Node::init(ORB_SLAM2::System::STEREO);
 
   get_parameter("left_image_topic", left_image_topic_);
   get_parameter("right_image_topic", right_image_topic_);

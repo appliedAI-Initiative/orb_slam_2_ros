@@ -28,6 +28,8 @@ int main(int argc, char ** argv)
   auto options = rclcpp::NodeOptions();
   auto node = std::make_shared<MonoNode>("mono", options);
 
+  node->init();
+
   if (argc > 1) {
     RCLCPP_WARN(node->get_logger(), "Arguments supplied via command line are neglected.");
   }
@@ -44,11 +46,14 @@ MonoNode::MonoNode(
   const rclcpp::NodeOptions & node_options)
 : Node(node_name, node_options)
 {
-  Node::init(ORB_SLAM2::System::MONOCULAR);
-
   declare_parameter("image_topic", rclcpp::ParameterValue(std::string("/camera/image_raw")));
   declare_parameter("camera_info_topic",
     rclcpp::ParameterValue(std::string("/camera/camera_info")));
+}
+
+void MonoNode::init()
+{
+  Node::init(ORB_SLAM2::System::MONOCULAR);
 
   get_parameter("image_topic", image_topic_);
   get_parameter("camera_info_topic", camera_info_topic_);

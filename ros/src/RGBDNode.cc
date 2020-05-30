@@ -27,6 +27,8 @@ int main(int argc, char ** argv)
   auto options = rclcpp::NodeOptions();
   auto node = std::make_shared<RGBDNode>("RGBD", options);
 
+  node->init();
+
   if (argc > 1) {
     RCLCPP_WARN(node->get_logger(), "Arguments supplied via command line are neglected.");
   }
@@ -43,14 +45,17 @@ RGBDNode::RGBDNode(
   const rclcpp::NodeOptions & node_options)
 : Node(node_name, node_options)
 {
-  Node::init(ORB_SLAM2::System::RGBD);
-
   declare_parameter("rgb_image_topic",
     rclcpp::ParameterValue(std::string("/camera/rgb/image_raw")));
   declare_parameter("depth_image_topic",
     rclcpp::ParameterValue(std::string("/camera/depth_registered/image_raw")));
   declare_parameter("camera_info_topic",
     rclcpp::ParameterValue(std::string("/camera/rgb/camera_info")));
+}
+
+void RGBDNode::init()
+{
+  Node::init(ORB_SLAM2::System::RGBD);
 
   get_parameter("rgb_image_topic", rgb_image_topic_);
   get_parameter("depth_image_topic", depth_image_topic_);

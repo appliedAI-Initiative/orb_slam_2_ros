@@ -46,7 +46,11 @@ public:
   MonoNode(
     const std::string & node_name,
     const rclcpp::NodeOptions & node_options);
+
   ~MonoNode();
+
+  void init();
+
   void ImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
 
 private:

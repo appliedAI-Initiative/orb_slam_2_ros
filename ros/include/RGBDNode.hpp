@@ -51,6 +51,8 @@ public:
 
   ~RGBDNode();
 
+  void init();
+
   void ImageCallback(
     const sensor_msgs::msg::Image::ConstSharedPtr & msgRGB,
     const sensor_msgs::msg::Image::ConstSharedPtr & msgD);

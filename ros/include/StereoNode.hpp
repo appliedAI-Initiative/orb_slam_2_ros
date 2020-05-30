@@ -55,6 +55,8 @@ public:
 
   ~StereoNode();
 
+  void init();
+
   void ImageCallback(
     const sensor_msgs::msg::Image::ConstSharedPtr & msgLeft,
     const sensor_msgs::msg::Image::ConstSharedPtr & msgRight);
