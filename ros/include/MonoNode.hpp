@@ -18,38 +18,44 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ORBSLAM2_ROS_MONONODE_H_
-#define ORBSLAM2_ROS_MONONODE_H_
+#ifndef MONONODE_HPP_
+#define MONONODE_HPP_
+
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/image_encodings.hpp>
+#include <sensor_msgs/msg/image.hpp>
+#include <opencv2/core/core.hpp>
+
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 #include <iostream>
 #include <algorithm>
 #include <fstream>
 #include <chrono>
-
-#include <rclcpp/rclcpp.hpp>
-#include <image_transport/image_transport.h>
-#include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.hpp>
-#include <sensor_msgs/msg/image.hpp>
-#include <opencv2/core/core.hpp>
-#include <tf2_ros/transform_broadcaster.h>
+#include <string>
 
 #include "System.h"
-#include "Node.hpp"
 
+#include "Node.hpp"
 
 class MonoNode : public Node
 {
 public:
-  MonoNode (
-    const ORB_SLAM2::System::eSensor sensor,
-    rclcpp::Node::SharedPtr & node,
-    std::shared_ptr<image_transport::ImageTransport> & image_transport);
-  ~MonoNode ();
-  void ImageCallback (const sensor_msgs::msg::Image::ConstSharedPtr & msg);
+  MonoNode(
+    const std::string & node_name,
+    const rclcpp::NodeOptions & node_options);
+
+  ~MonoNode();
+
+  void init();
+
+  void ImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
 
 private:
   image_transport::Subscriber image_subscriber_;
+  std::string image_topic_;
 };
 
-#endif //ORBSLAM2_ROS_MONONODE_H_
+#endif  // MONONODE_HPP_

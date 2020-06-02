@@ -2,17 +2,18 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>orb_slam2_ros</name>
-  <version>0.0.1</version>
+  <version>1.1.0</version>
   <description>ORB SLAM2 ros implementation.</description>
 
   <maintainer email="haller@unternehmertum.de">Lennart Haller</maintainer>
 
-  <license>1.0.0</license>
+  <license>GPLv3</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
   <build_depend>rclcpp</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
   <build_depend>cv_bridge</build_depend>
   <build_depend>image_transport</build_depend>
   <build_depend>tf2_ros</build_depend>
@@ -20,6 +21,7 @@
   <build_depend>rosidl_default_generators</build_depend>
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>cv_bridge</exec_depend>
   <exec_depend>image_transport</exec_depend>
   <exec_depend>tf2_ros</exec_depend>

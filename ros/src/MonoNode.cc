@@ -1,20 +1,38 @@
+/**
+* This file is part of ORB-SLAM2.
+*
+* Copyright (C) 2014-2016 Raúl Mur-Artal <raulmur at unizar dot es> (University of Zaragoza)
+* For more information see <https://github.com/raulmur/ORB_SLAM2>
+*
+* ORB-SLAM2 is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* ORB-SLAM2 is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "MonoNode.hpp"
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
   // Create SLAM system. It initializes all system threads and gets ready to process frames.
   auto options = rclcpp::NodeOptions();
-  auto node = rclcpp::Node::make_shared("Mono");
+  auto node = std::make_shared<MonoNode>("mono", options);
 
-  if(argc > 1) {
+  node->init();
+
+  if (argc > 1) {
     RCLCPP_WARN(node->get_logger(), "Arguments supplied via command line are neglected.");
   }
-
-  auto image_transport = std::make_shared<image_transport::ImageTransport>(node);
-
-  MonoNode mono_node(ORB_SLAM2::System::MONOCULAR, node, image_transport);
 
   rclcpp::spin(node->get_node_base_interface());
 
@@ -23,28 +41,39 @@ int main(int argc, char **argv)
   return 0;
 }
 
-
 MonoNode::MonoNode(
-  ORB_SLAM2::System::eSensor sensor,
-  rclcpp::Node::SharedPtr & node,
-  std::shared_ptr<image_transport::ImageTransport> & image_transport)
-: Node (sensor, node, image_transport) {
-  image_subscriber_ = image_transport->subscribe("/camera/image_raw", 1, &MonoNode::ImageCallback, this);
-  camera_info_topic_ = "/camera/camera_info";
+  const std::string & node_name,
+  const rclcpp::NodeOptions & node_options)
+: Node(node_name, node_options)
+{
+  declare_parameter("image_topic", rclcpp::ParameterValue(std::string("/camera/image_raw")));
+  declare_parameter("camera_info_topic",
+    rclcpp::ParameterValue(std::string("/camera/camera_info")));
 }
 
+void MonoNode::init()
+{
+  Node::init(ORB_SLAM2::System::MONOCULAR);
 
-MonoNode::~MonoNode () {
+  get_parameter("image_topic", image_topic_);
+  get_parameter("camera_info_topic", camera_info_topic_);
+
+  image_subscriber_ = image_transport_->subscribe(
+    image_topic_, 1, &MonoNode::ImageCallback, this);
 }
 
+MonoNode::~MonoNode()
+{
+}
 
-void MonoNode::ImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msg) {
+void MonoNode::ImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
+{
   cv_bridge::CvImageConstPtr cv_in_ptr;
   try {
-      cv_in_ptr = cv_bridge::toCvShare(msg);
-  } catch (cv_bridge::Exception& e) {
-      RCLCPP_ERROR(node_->get_logger(), "cv_bridge exception: %s", e.what());
-      return;
+    cv_in_ptr = cv_bridge::toCvShare(msg);
+  } catch (cv_bridge::Exception & e) {
+    RCLCPP_ERROR(get_logger(), "cv_bridge exception: %s", e.what());
+    return;
   }
 
   current_frame_time_ = msg->header.stamp;
