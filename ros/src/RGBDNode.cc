@@ -55,11 +55,12 @@ RGBDNode::RGBDNode(
 
 void RGBDNode::init()
 {
+  get_parameter("camera_info_topic", camera_info_topic_);
   Node::init(ORB_SLAM2::System::RGBD);
 
   get_parameter("rgb_image_topic", rgb_image_topic_);
   get_parameter("depth_image_topic", depth_image_topic_);
-  get_parameter("camera_info_topic", camera_info_topic_);
+
 
   rgb_subscriber_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(
     shared_from_this(), rgb_image_topic_);

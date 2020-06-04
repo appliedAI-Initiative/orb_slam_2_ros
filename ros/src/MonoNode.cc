@@ -47,16 +47,16 @@ MonoNode::MonoNode(
 : Node(node_name, node_options)
 {
   declare_parameter("image_topic", rclcpp::ParameterValue(std::string("/camera/image_raw")));
-  declare_parameter("camera_info_topic",
-    rclcpp::ParameterValue(std::string("/camera/camera_info")));
+  declare_parameter("camera_info_topic", rclcpp::ParameterValue(std::string("/camera/fisheye1/camera_info")));
 }
 
 void MonoNode::init()
 {
+  get_parameter("camera_info_topic", camera_info_topic_);
   Node::init(ORB_SLAM2::System::MONOCULAR);
 
   get_parameter("image_topic", image_topic_);
-  get_parameter("camera_info_topic", camera_info_topic_);
+
 
   image_subscriber_ = image_transport_->subscribe(
     image_topic_, 1, &MonoNode::ImageCallback, this);

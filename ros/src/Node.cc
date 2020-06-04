@@ -49,8 +49,8 @@ Node::Node(
   declare_parameter("ORBextractor/nLevels", rclcpp::ParameterValue(8));
   declare_parameter("ORBextractor/iniThFAST", rclcpp::ParameterValue(20));
   declare_parameter("ORBextractor/minThFAST", rclcpp::ParameterValue(7));
-  declare_parameter("load_calibration_from_cam", rclcpp::ParameterValue(false));
-  declare_parameter("cam_info_timeout", rclcpp::ParameterValue(100));
+  declare_parameter("load_calibration_from_cam", rclcpp::ParameterValue(true));
+  declare_parameter("cam_info_timeout", rclcpp::ParameterValue(100.0f));
   declare_parameter("ThDepth", rclcpp::ParameterValue(35.0f));
   declare_parameter("depth_map_factor", rclcpp::ParameterValue(1.0f));
 }
@@ -304,7 +304,7 @@ void Node::LoadOrbParameters(ORB_SLAM2::ORBParameters & parameters)
     get_parameter("ThDepth", parameters.thDepth);
     get_parameter("depth_map_factor", parameters.depthMapFactor);
   }
-
+  
   if (load_calibration_from_cam) {
     RCLCPP_INFO(get_logger(), "Listening for camera info on topic %s", camera_info_topic_.c_str());
 
@@ -318,6 +318,7 @@ void Node::LoadOrbParameters(ORB_SLAM2::ORBParameters & parameters)
     rclcpp::Time start = now();
 
     while (!camera_info_msg_ && now() - start < timeout_d) {
+      RCLCPP_INFO(get_logger(), "Listening for camera info on topic %s", camera_info_topic_.c_str());
       rclcpp::spin_some(shared_from_this());
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

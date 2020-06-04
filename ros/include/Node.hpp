@@ -72,7 +72,7 @@ protected:
   void Update();
   ORB_SLAM2::System * orb_slam_;
   rclcpp::Time current_frame_time_;
-  std::string camera_info_topic_;
+  std::string camera_info_topic_ = ""; 
   std::shared_ptr<image_transport::ImageTransport> image_transport_;
 
 private:

@@ -10,7 +10,7 @@ orb_slam2_ros:
     # static parameters
     load_map: false
     map_file: map.bin
-    voc_file: $(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt
+    #voc_file: $(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt
 
     pointcloud_frame_id: map
     camera_frame_id: camera_link
@@ -27,7 +27,7 @@ orb_slam2_ros:
     #Camera frames per second
     camera_fps: 30
     #Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale) 
-    camera_rgb_encoding: true
+    camera_rgb_encoding: false
     #Close/Far threshold. Baseline times. 
     ThDepth: 40.0
     #Depthmap values factor (what pixel value in the depth image corresponds to 1m) 
@@ -37,7 +37,7 @@ orb_slam2_ros:
     #If the node should wait for a camera_info topic to take the camera calibration data
     load_calibration_from_cam: true
     #Camera calibration and distortion parameters (OpenCV) 
-    camera_fx: 632.7927856445312
+    camera_fx: 284.6852111816406
     camera_fy: 626.8605346679688
     camera_cx: 311.43603515625
     camera_cy: 248.0950164794922

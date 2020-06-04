@@ -50,20 +50,21 @@ StereoNode::StereoNode(
 : Node(node_name, node_options)
 {
   declare_parameter("left_image_topic",
-    rclcpp::ParameterValue(std::string("image_left/image_color_rect")));
+    rclcpp::ParameterValue(std::string("/camera_left/image_raw")));
   declare_parameter("right_image_topic",
-    rclcpp::ParameterValue(std::string("image_right/image_color_rect")));
+    rclcpp::ParameterValue(std::string("/camera_right/image_raw")));
   declare_parameter("camera_info_topic",
-    rclcpp::ParameterValue(std::string("image_left/camera_info")));
+    rclcpp::ParameterValue(std::string("/camera/fisheye1/camera_info")));
 }
 
 void StereoNode::init()
 {
+  get_parameter("camera_info_topic", camera_info_topic_);
   Node::init(ORB_SLAM2::System::STEREO);
 
   get_parameter("left_image_topic", left_image_topic_);
   get_parameter("right_image_topic", right_image_topic_);
-  get_parameter("camera_info_topic", camera_info_topic_);
+  
 
   left_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(
     shared_from_this(), left_image_topic_);
