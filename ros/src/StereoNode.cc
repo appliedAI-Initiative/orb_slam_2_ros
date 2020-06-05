@@ -50,11 +50,11 @@ StereoNode::StereoNode(
 : Node(node_name, node_options)
 {
   declare_parameter("left_image_topic",
-    rclcpp::ParameterValue(std::string("/camera_left/image_raw")));
+    rclcpp::ParameterValue(std::string("/image_left/image_raw")));
   declare_parameter("right_image_topic",
-    rclcpp::ParameterValue(std::string("/camera_right/image_raw")));
+    rclcpp::ParameterValue(std::string("/image_right/image_raw")));
   declare_parameter("camera_info_topic",
-    rclcpp::ParameterValue(std::string("/camera/fisheye1/camera_info")));
+    rclcpp::ParameterValue(std::string("/camera/camera_info")));
 }
 
 void StereoNode::init()

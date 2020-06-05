@@ -1,5 +1,5 @@
 
-orb_slam2_ros:
+mono:
   ros__parameters:
 
     publish_pointcloud: true
@@ -10,6 +10,7 @@ orb_slam2_ros:
     # static parameters
     load_map: false
     map_file: map.bin
+   
 
     pointcloud_frame_id: map
     camera_frame_id: camera_link

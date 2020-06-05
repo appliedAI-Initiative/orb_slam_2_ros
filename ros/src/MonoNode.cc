@@ -47,7 +47,7 @@ MonoNode::MonoNode(
 : Node(node_name, node_options)
 {
   declare_parameter("image_topic", rclcpp::ParameterValue(std::string("/camera/image_raw")));
-  declare_parameter("camera_info_topic", rclcpp::ParameterValue(std::string("/camera/fisheye1/camera_info")));
+  declare_parameter("camera_info_topic", rclcpp::ParameterValue(std::string("/camera/camera_info")));
 }
 
 void MonoNode::init()
