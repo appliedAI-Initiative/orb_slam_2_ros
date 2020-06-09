@@ -54,7 +54,7 @@ StereoNode::StereoNode(
   declare_parameter("right_image_topic",
     rclcpp::ParameterValue(std::string("/image_right/image_raw")));
   declare_parameter("camera_info_topic",
-    rclcpp::ParameterValue(std::string("/camera/camera_info")));
+    rclcpp::ParameterValue(std::string("/image_left/camera_info")));
 }
 
 void StereoNode::init()

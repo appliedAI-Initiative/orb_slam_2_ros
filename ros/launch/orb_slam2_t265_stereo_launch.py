@@ -18,7 +18,7 @@ def generate_launch_description():
       remappings=[
                 ('/image_left/image_raw', '/camera/fisheye1/image_raw'),
                 ('/image_right/image_raw', '/camera/fisheye2/image_raw'),
-                ('/camera/camera_info', '/camera/fisheye1/camera_info'),
+                ('/image_left/camera_info', '/camera/fisheye1/camera_info'),
       ]
     )
   ])
