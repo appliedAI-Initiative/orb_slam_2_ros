@@ -28,6 +28,8 @@ orb_slam2_mono_node:
     camera_fps: 30
     #Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale) 
     camera_rgb_encoding: false
+    #Close/Far threshold. Baseline times. 
+    ThDepth: 40.0
 
     #Camera calibration parameters
     #If the node should wait for a camera_info topic to take the camera calibration data
