@@ -60,10 +60,10 @@ StereoNode::StereoNode(
 void StereoNode::init()
 {
   get_parameter("camera_info_topic", camera_info_topic_);
-  Node::init(ORB_SLAM2::System::STEREO);
-
   get_parameter("left_image_topic", left_image_topic_);
   get_parameter("right_image_topic", right_image_topic_);
+  Node::init(ORB_SLAM2::System::STEREO);
+
   
 
   left_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(

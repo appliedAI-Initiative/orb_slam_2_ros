@@ -53,9 +53,8 @@ MonoNode::MonoNode(
 void MonoNode::init()
 {
   get_parameter("camera_info_topic", camera_info_topic_);
-  Node::init(ORB_SLAM2::System::MONOCULAR);
-
   get_parameter("image_topic", image_topic_);
+  Node::init(ORB_SLAM2::System::MONOCULAR);
 
 
   image_subscriber_ = image_transport_->subscribe(
