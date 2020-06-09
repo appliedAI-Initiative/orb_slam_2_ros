@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
 
   auto options = rclcpp::NodeOptions();
-  auto node = std::make_shared<StereoNode>("Stereo", options);
+  auto node = std::make_shared<StereoNode>("orb_slam2_stereo_node", options);
 
   node->init();
 

@@ -26,7 +26,7 @@ int main(int argc, char ** argv)
 
   // Create SLAM system. It initializes all system threads and gets ready to process frames.
   auto options = rclcpp::NodeOptions();
-  auto node = std::make_shared<MonoNode>("mono", options);
+  auto node = std::make_shared<MonoNode>("orb_slam2_mono_node", options);
 
   node->init();
 

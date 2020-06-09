@@ -1,5 +1,5 @@
 
-orb_slam2_ros:
+orb_slam2_stereo_node:
   ros__parameters:
 
     publish_pointcloud: true
@@ -16,21 +16,17 @@ orb_slam2_ros:
     min_num_kf_in_map: 5
 
     #ORB parameters
-    /ORBextractor/nFeatures: 1200
-    /ORBextractor/scaleFactor: 1.2
-    /ORBextractor/nLevels: 8
-    /ORBextractor/iniThFAST: 20
-    /ORBextractor/minThFAST: 7
+    ORBextractor/nFeatures: 1200
+    ORBextractor/scaleFactor: 1.2
+    ORBextractor/nLevels: 8
+    ORBextractor/iniThFAST: 20
+    ORBextractor/minThFAST: 7
 
     #Camera Parameters
     #Camera frames per second
     camera_fps: 30
     #Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale) 
     camera_rgb_encoding: false
-    #Close/Far threshold. Baseline times. 
-    ThDepth: 40.0
-    #Depthmap values factor (what pixel value in the depth image corresponds to 1m) 
-    depth_map_factor: 1.0
 
     #Camera calibration parameters
     #If the node should wait for a camera_info topic to take the camera calibration data
