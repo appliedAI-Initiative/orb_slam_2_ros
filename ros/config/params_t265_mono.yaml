@@ -1,0 +1,28 @@
+orb_slam2_mono:
+  ros__parameters:
+
+    publish_pointcloud: true
+    publish_pose: true
+    localize_only: false
+    reset_map: false
+
+    # static parameters
+    load_map: false
+    map_file: map.bin
+
+    pointcloud_frame_id: map
+    camera_frame_id: camera_link
+    min_num_kf_in_map: 5
+
+    #ORB parameters
+    ORBextractor/nFeatures: 1200
+    ORBextractor/scaleFactor: 1.2
+    ORBextractor/nLevels: 8
+    ORBextractor/iniThFAST: 20
+    ORBextractor/minThFAST: 7
+
+    #Camera Parameters
+    #Camera frames per second
+    camera_fps: 30
+    #Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale) 
+    camera_rgb_encoding: true

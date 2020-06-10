@@ -26,10 +26,6 @@
 #include<opencv2/features2d/features2d.hpp>
 #include<opencv2/imgproc/types_c.h>
 
-#include <ros/ros.h>
-#include <sensor_msgs/CameraInfo.h>
-
-
 #include"FrameDrawer.h"
 #include"Map.h"
 #include"LocalMapping.h"

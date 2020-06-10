@@ -676,7 +676,7 @@ KeyFrame::KeyFrame():
     mnMaxY(0)
 {}
 template<class Archive>
-void KeyFrame::serialize(Archive &ar, const unsigned int version)
+void KeyFrame::serialize(Archive &ar, const unsigned int /*version*/)
 {
     // no mutex needed vars
     ar & nNextId;

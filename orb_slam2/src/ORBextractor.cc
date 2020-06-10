@@ -537,7 +537,7 @@ void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNo
 }
 
 vector<cv::KeyPoint> ORBextractor::DistributeOctTree(const vector<cv::KeyPoint>& vToDistributeKeys, const int &minX,
-                                       const int &maxX, const int &minY, const int &maxY, const int &N, const int &level)
+                                       const int &maxX, const int &minY, const int &maxY, const int &N, const int & /*level*/)
 {
     // Compute how many initial nodes   
     const int nIni = round(static_cast<float>(maxX-minX)/(maxY-minY));
@@ -1040,7 +1040,7 @@ static void computeDescriptors(const Mat& image, vector<KeyPoint>& keypoints, Ma
         computeOrbDescriptor(keypoints[i], image, &pattern[0], descriptors.ptr((int)i));
 }
 
-void ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPoint>& _keypoints,
+void ORBextractor::operator()( InputArray _image, InputArray /*_mask*/, vector<KeyPoint>& _keypoints,
                       OutputArray _descriptors)
 { 
     if(_image.empty())

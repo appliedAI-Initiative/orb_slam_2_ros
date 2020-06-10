@@ -62,3 +62,7 @@ int vasprintf(char** strp, const char* fmt, va_list ap)
 
 
 #endif
+
+// ISO C forbids an empty translation unit
+// To go around the warning, add a dummy typedef
+typedef int make_iso_compilers_happy;

@@ -310,7 +310,7 @@ vector<KeyFrame*> KeyFrameDatabase::DetectRelocalizationCandidates(Frame *F)
 
 // map serialization addition
 template<class Archive>
-void KeyFrameDatabase::serialize(Archive &ar, const unsigned int version)
+void KeyFrameDatabase::serialize(Archive &ar, const unsigned int)
 {
     // don't save associated vocabulary, KFDB restore by created explicitly from a new ORBvocabulary instance
     // inverted file
