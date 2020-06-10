@@ -45,7 +45,7 @@ def generate_launch_description():
             ],
             package='orb_slam2_ros',
             node_executable='orb_slam2_ros_mono',
-            node_name='orb_slam2_ros_mono',
+            node_name='orb_slam2_mono',
             output='screen',
             remappings=remappings
         )

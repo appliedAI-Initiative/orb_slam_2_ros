@@ -46,7 +46,7 @@ def generate_launch_description():
             ],
             package='orb_slam2_ros',
             node_executable='orb_slam2_ros_stereo',
-            node_name='orb_slam2_ros_stereo',
+            node_name='orb_slam2_stereo',
             output='screen',
             remappings=remappings
         )

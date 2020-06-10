@@ -1,4 +1,4 @@
-orb_slam2_ros_rgbd:
+orb_slam2_rgbd:
   ros__parameters:
 
     publish_pointcloud: true

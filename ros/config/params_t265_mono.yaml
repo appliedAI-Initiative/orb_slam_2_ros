@@ -1,4 +1,4 @@
-orb_slam2_ros_mono:
+orb_slam2_mono:
   ros__parameters:
 
     publish_pointcloud: true

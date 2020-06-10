@@ -1,4 +1,4 @@
-orb_slam2_ros_stereo:
+orb_slam2_stereo:
   ros__parameters:
 
     publish_pointcloud: true
