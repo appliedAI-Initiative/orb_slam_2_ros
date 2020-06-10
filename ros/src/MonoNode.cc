@@ -30,10 +30,6 @@ int main(int argc, char ** argv)
 
   node->init();
 
-  if (argc > 1) {
-    RCLCPP_WARN(node->get_logger(), "Arguments supplied via command line are neglected.");
-  }
-
   rclcpp::spin(node->get_node_base_interface());
 
   rclcpp::shutdown();
@@ -46,19 +42,14 @@ MonoNode::MonoNode(
   const rclcpp::NodeOptions & node_options)
 : Node(node_name, node_options)
 {
-  declare_parameter("image_topic", rclcpp::ParameterValue(std::string("/camera/image_raw")));
-  declare_parameter("camera_info_topic", rclcpp::ParameterValue(std::string("/camera/camera_info")));
 }
 
 void MonoNode::init()
 {
-  get_parameter("camera_info_topic", camera_info_topic_);
-  get_parameter("image_topic", image_topic_);
   Node::init(ORB_SLAM2::System::MONOCULAR);
 
-
   image_subscriber_ = image_transport_->subscribe(
-    image_topic_, 1, &MonoNode::ImageCallback, this);
+    "/camera/image_raw", 1, &MonoNode::ImageCallback, this);
 }
 
 MonoNode::~MonoNode()
@@ -67,6 +58,11 @@ MonoNode::~MonoNode()
 
 void MonoNode::ImageCallback(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 {
+  if (!isInitialized()) {
+    RCLCPP_WARN(get_logger(), "Camera info not received, node has not been initialized!");
+    return;
+  }
+
   cv_bridge::CvImageConstPtr cv_in_ptr;
   try {
     cv_in_ptr = cv_bridge::toCvShare(msg);

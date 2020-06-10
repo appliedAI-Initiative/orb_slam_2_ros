@@ -29,10 +29,6 @@ int main(int argc, char ** argv)
 
   node->init();
 
-  if (argc > 1) {
-    RCLCPP_WARN(node->get_logger(), "Arguments supplied via command line are neglected.");
-  }
-
   rclcpp::spin(node->get_node_base_interface());
 
   rclcpp::shutdown();
@@ -45,27 +41,16 @@ RGBDNode::RGBDNode(
   const rclcpp::NodeOptions & node_options)
 : Node(node_name, node_options)
 {
-  declare_parameter("rgb_image_topic",
-    rclcpp::ParameterValue(std::string("/camera/rgb/image_raw")));
-  declare_parameter("depth_image_topic",
-    rclcpp::ParameterValue(std::string("/camera/depth_registered/image_raw")));
-  declare_parameter("camera_info_topic",
-    rclcpp::ParameterValue(std::string("/camera/rgb/camera_info")));
 }
 
 void RGBDNode::init()
 {
-  get_parameter("camera_info_topic", camera_info_topic_);
-  get_parameter("rgb_image_topic", rgb_image_topic_);
-  get_parameter("depth_image_topic", depth_image_topic_);
   Node::init(ORB_SLAM2::System::RGBD);
 
-
-
   rgb_subscriber_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(
-    shared_from_this(), rgb_image_topic_);
+    shared_from_this(), "/camera/rgb/image_raw");
   depth_subscriber_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(
-    shared_from_this(), depth_image_topic_);
+    shared_from_this(), "/camera/depth_registered/image_raw");
 
   sync_ = new message_filters::Synchronizer<sync_pol>(
     sync_pol(10), *rgb_subscriber_, *depth_subscriber_);
@@ -82,6 +67,11 @@ void RGBDNode::ImageCallback(
   const sensor_msgs::msg::Image::ConstSharedPtr & msgRGB,
   const sensor_msgs::msg::Image::ConstSharedPtr & msgD)
 {
+  if (!isInitialized()) {
+    RCLCPP_WARN(get_logger(), "Camera info not received, node has not been initialized!");
+    return;
+  }
+
   // Copy the ros image message to cv::Mat.
   cv_bridge::CvImageConstPtr cv_ptrRGB;
   try {

@@ -63,9 +63,6 @@ private:
   std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> rgb_subscriber_;
   std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> depth_subscriber_;
   message_filters::Synchronizer<sync_pol> * sync_;
-
-  std::string rgb_image_topic_;
-  std::string depth_image_topic_;
 };
 
 #endif  // RGBDNODE_HPP_

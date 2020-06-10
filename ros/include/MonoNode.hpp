@@ -55,7 +55,6 @@ public:
 
 private:
   image_transport::Subscriber image_subscriber_;
-  std::string image_topic_;
 };
 
 #endif  // MONONODE_HPP_

@@ -29,7 +29,10 @@ Node::Node(
   image_transport_(nullptr),
   map_points_publisher_(nullptr),
   pose_publisher_(nullptr),
+  camera_info_sub_(nullptr),
+  service_server_(nullptr),
   node_name_(node_name),
+  initialized_(false),
   min_observations_per_point_(2)
 {
   declare_parameter("publish_pointcloud", rclcpp::ParameterValue(true));
@@ -49,10 +52,9 @@ Node::Node(
   declare_parameter("ORBextractor/nLevels", rclcpp::ParameterValue(8));
   declare_parameter("ORBextractor/iniThFAST", rclcpp::ParameterValue(20));
   declare_parameter("ORBextractor/minThFAST", rclcpp::ParameterValue(7));
-  declare_parameter("load_calibration_from_cam", rclcpp::ParameterValue(false));
-  declare_parameter("cam_info_timeout", rclcpp::ParameterValue(100.0f));
   declare_parameter("ThDepth", rclcpp::ParameterValue(35.0f));
   declare_parameter("depth_map_factor", rclcpp::ParameterValue(1.0f));
+  declare_parameter("camera_baseline", rclcpp::ParameterValue(0.0f));
 }
 
 void Node::init(const ORB_SLAM2::System::eSensor & sensor)
@@ -70,10 +72,6 @@ void Node::init(const ORB_SLAM2::System::eSensor & sensor)
 
   image_transport_ = std::make_shared<image_transport::ImageTransport>(shared_from_this());
 
-  // Create a parameters object to pass to the Tracking system
-  ORB_SLAM2::ORBParameters parameters{};
-  LoadOrbParameters(parameters);
-
   tf_buffer_ = std::make_shared<tf2_ros::Buffer>(get_clock());
   auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
     get_node_base_interface(),
@@ -82,29 +80,25 @@ void Node::init(const ORB_SLAM2::System::eSensor & sensor)
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
   tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(shared_from_this());
 
-  orb_slam_ = new ORB_SLAM2::System(
-    voc_file_name_param_,
-    sensor_,
-    parameters,
-    map_file_name_param_,
-    load_map_param_);
-
-  service_server_ = create_service<orb_slam2_ros::srv::SaveMap>(
-    "save_map",
-    std::bind(
-      &Node::SaveMapSrv, this,
-      std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-
   rendered_image_publisher_ = image_transport_->advertise(node_name_ + "/debug_image", 1);
   if (publish_pointcloud_param_) {
     map_points_publisher_ = create_publisher<sensor_msgs::msg::PointCloud2>(
-      "map_points", 1);
+        node_name_ + "/map_points", 1);
   }
 
   // Enable publishing camera's pose as PoseStamped message
   if (publish_pose_param_) {
-    pose_publisher_ = create_publisher<geometry_msgs::msg::PoseStamped>("pose", 1);
+    pose_publisher_ = create_publisher<geometry_msgs::msg::PoseStamped>(node_name_ + "/pose", 1);
   }
+
+  camera_info_sub_ = create_subscription<sensor_msgs::msg::CameraInfo>(
+      "/camera/camera_info", 1, std::bind(&Node::cameraInfoCallback, this, std::placeholders::_1));
+
+  service_server_ = create_service<orb_slam2_ros::srv::SaveMap>(
+      node_name_ + "/save_map",
+      std::bind(
+          &Node::SaveMapSrv, this,
+          std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 }
 
 Node::~Node()
@@ -120,6 +114,11 @@ Node::~Node()
 
 void Node::Update()
 {
+  if (!initialized_) {
+    RCLCPP_WARN(get_logger(), "Camera info not received, node has not been initialized!");
+    return;
+  }
+
   cv::Mat position = orb_slam_->GetCurrentPosition();
 
   if (!position.empty()) {
@@ -218,8 +217,8 @@ tf2::Transform Node::TransformFromMat(cv::Mat position_mat)
 sensor_msgs::msg::PointCloud2 Node::MapPointsToPointCloud(
   std::vector<ORB_SLAM2::MapPoint *> map_points)
 {
-  if (map_points.size() == 0) {
-    std::cout << "Map point vector is empty!" << std::endl;
+  if (map_points.empty()) {
+    RCLCPP_WARN(get_logger(), "Map point vector is empty!");
   }
 
   sensor_msgs::msg::PointCloud2 cloud;
@@ -284,11 +283,17 @@ void Node::SaveMapSrv(
 
 void Node::cameraInfoCallback(sensor_msgs::msg::CameraInfo::SharedPtr msg)
 {
-  camera_info_msg_ = std::move(msg);
+  if (!initialized_) {
+    RCLCPP_INFO(get_logger(), "Camera info received.");
+    LoadOrbParameters(msg);
+  }
 }
 
-void Node::LoadOrbParameters(ORB_SLAM2::ORBParameters & parameters)
+void Node::LoadOrbParameters(sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
 {
+  // Create a parameters object to pass to the Tracking system
+  ORB_SLAM2::ORBParameters parameters{};
+
   get_parameter("camera_fps", parameters.maxFrames);
   get_parameter("camera_rgb_encoding", parameters.RGB);
   get_parameter("ORBextractor/nFeatures", parameters.nFeatures);
@@ -297,79 +302,33 @@ void Node::LoadOrbParameters(ORB_SLAM2::ORBParameters & parameters)
   get_parameter("ORBextractor/iniThFAST", parameters.iniThFAST);
   get_parameter("ORBextractor/minThFAST", parameters.minThFAST);
 
-  bool load_calibration_from_cam;
-  get_parameter("load_calibration_from_cam", load_calibration_from_cam);
-
   if (sensor_ == ORB_SLAM2::System::STEREO || sensor_ == ORB_SLAM2::System::RGBD) {
     get_parameter("ThDepth", parameters.thDepth);
     get_parameter("depth_map_factor", parameters.depthMapFactor);
   }
-  
-  if (load_calibration_from_cam) {
-    RCLCPP_INFO(get_logger(), "Listening for camera info on topic %s", camera_info_topic_.c_str());
 
-    camera_info_msg_ = nullptr;
-    auto camera_info_sub = create_subscription<sensor_msgs::msg::CameraInfo>(
-      camera_info_topic_, 1, std::bind(&Node::cameraInfoCallback, this, std::placeholders::_1));
+  parameters.fx = camera_info->k[0];
+  parameters.fy = camera_info->k[4];
+  parameters.cx = camera_info->k[2];
+  parameters.cy = camera_info->k[5];
+  parameters.k1 = camera_info->d[0];
+  parameters.k2 = camera_info->d[1];
+  parameters.p1 = camera_info->d[2];
+  parameters.p2 = camera_info->d[3];
+  parameters.k3 = camera_info->d[4];
 
-    double timeout;
-    get_parameter("cam_info_timeout", timeout);
-    rclcpp::Duration timeout_d = rclcpp::Duration::from_seconds(timeout);
-    rclcpp::Time start = now();
-
-    while (!camera_info_msg_ && now() - start < timeout_d) {
-      RCLCPP_INFO(get_logger(), "Listening for camera info on topic %s", camera_info_topic_.c_str());
-      rclcpp::spin_some(shared_from_this());
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-
-    if (camera_info_msg_ == nullptr) {
-      RCLCPP_WARN(
-        get_logger(),
-        "Did not receive camera info before timeout, defaulting to launch file params.");
-    } else {
-      parameters.fx = camera_info_msg_->k[0];
-      parameters.fy = camera_info_msg_->k[4];
-      parameters.cx = camera_info_msg_->k[2];
-      parameters.cy = camera_info_msg_->k[5];
-      parameters.baseline = camera_info_msg_->p[3];
-      parameters.k1 = camera_info_msg_->d[0];
-      parameters.k2 = camera_info_msg_->d[1];
-      parameters.p1 = camera_info_msg_->d[2];
-      parameters.p2 = camera_info_msg_->d[3];
-      parameters.k3 = camera_info_msg_->d[4];
-      return;
-    }
-  }
-
-  declare_parameter("camera_baseline", rclcpp::ParameterValue(parameters.baseline));
-  declare_parameter("camera_fx", rclcpp::ParameterValue(parameters.fx));
-  declare_parameter("camera_fy", rclcpp::ParameterValue(parameters.fy));
-  declare_parameter("camera_cx", rclcpp::ParameterValue(parameters.cx));
-  declare_parameter("camera_cy", rclcpp::ParameterValue(parameters.cy));
-  declare_parameter("camera_k1", rclcpp::ParameterValue(parameters.k1));
-  declare_parameter("camera_k2", rclcpp::ParameterValue(parameters.k2));
-  declare_parameter("camera_p1", rclcpp::ParameterValue(parameters.p1));
-  declare_parameter("camera_p2", rclcpp::ParameterValue(parameters.p2));
-  declare_parameter("camera_k3", rclcpp::ParameterValue(parameters.k3));
-
-  bool got_cam_calibration = true;
   if (sensor_ == ORB_SLAM2::System::STEREO || sensor_ == ORB_SLAM2::System::RGBD) {
-    got_cam_calibration &= get_parameter("camera_baseline", parameters.baseline);
+    if (!get_parameter("camera_baseline", parameters.baseline)) {
+      parameters.baseline = camera_info->p[3];
+    }
   }
 
-  got_cam_calibration &= get_parameter("camera_fx", parameters.fx);
-  got_cam_calibration &= get_parameter("camera_fy", parameters.fy);
-  got_cam_calibration &= get_parameter("camera_cx", parameters.cx);
-  got_cam_calibration &= get_parameter("camera_cy", parameters.cy);
-  got_cam_calibration &= get_parameter("camera_k1", parameters.k1);
-  got_cam_calibration &= get_parameter("camera_k2", parameters.k2);
-  got_cam_calibration &= get_parameter("camera_p1", parameters.p1);
-  got_cam_calibration &= get_parameter("camera_p2", parameters.p2);
-  got_cam_calibration &= get_parameter("camera_k3", parameters.k3);
+  orb_slam_ = new ORB_SLAM2::System(
+      voc_file_name_param_,
+      sensor_,
+      parameters,
+      map_file_name_param_,
+      load_map_param_);
 
-  if (!got_cam_calibration) {
-    RCLCPP_ERROR(get_logger(), "Failed to get camera calibration parameters from the launch file.");
-    throw std::runtime_error("No cam calibration");
-  }
+  initialized_ = true;
 }

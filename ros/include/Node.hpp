@@ -70,9 +70,13 @@ public:
 
 protected:
   void Update();
+  bool isInitialized()
+  {
+    return initialized_;
+  }
+
   ORB_SLAM2::System * orb_slam_;
   rclcpp::Time current_frame_time_;
-  std::string camera_info_topic_ = ""; 
   std::shared_ptr<image_transport::ImageTransport> image_transport_;
 
 private:
@@ -84,7 +88,7 @@ private:
     const shared_ptr<rmw_request_id_t>/*request_header*/,
     const shared_ptr<orb_slam2_ros::srv::SaveMap::Request> request,
     const shared_ptr<orb_slam2_ros::srv::SaveMap::Response> response);
-  void LoadOrbParameters(ORB_SLAM2::ORBParameters & parameters);
+  void LoadOrbParameters(sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
   void cameraInfoCallback(sensor_msgs::msg::CameraInfo::SharedPtr msg);
 
   tf2::Transform TransformFromMat(cv::Mat position_mat);
@@ -96,7 +100,7 @@ private:
   image_transport::Publisher rendered_image_publisher_;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_points_publisher_;
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_publisher_;
-
+  rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_sub_;
   rclcpp::Service<orb_slam2_ros::srv::SaveMap>::SharedPtr service_server_;
 
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
@@ -105,7 +109,7 @@ private:
 
   std::string node_name_;
 
-  sensor_msgs::msg::CameraInfo::SharedPtr camera_info_msg_;
+  bool initialized_;
 
   std::string map_frame_id_param_;
   std::string camera_frame_id_param_;

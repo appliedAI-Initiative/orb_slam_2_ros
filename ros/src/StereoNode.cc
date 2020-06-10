@@ -33,10 +33,6 @@ int main(int argc, char ** argv)
 
   node->init();
 
-  if (argc > 1) {
-    RCLCPP_WARN(node->get_logger(), "Arguments supplied via command line are neglected.");
-  }
-
   rclcpp::spin(node->get_node_base_interface());
 
   rclcpp::shutdown();
@@ -49,27 +45,16 @@ StereoNode::StereoNode(
   const rclcpp::NodeOptions & node_options)
 : Node(node_name, node_options)
 {
-  declare_parameter("left_image_topic",
-    rclcpp::ParameterValue(std::string("/image_left/image_raw")));
-  declare_parameter("right_image_topic",
-    rclcpp::ParameterValue(std::string("/image_right/image_raw")));
-  declare_parameter("camera_info_topic",
-    rclcpp::ParameterValue(std::string("/image_left/camera_info")));
 }
 
 void StereoNode::init()
 {
-  get_parameter("camera_info_topic", camera_info_topic_);
-  get_parameter("left_image_topic", left_image_topic_);
-  get_parameter("right_image_topic", right_image_topic_);
   Node::init(ORB_SLAM2::System::STEREO);
 
-  
-
   left_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(
-    shared_from_this(), left_image_topic_);
+    shared_from_this(), "/image_left/image_color_rect");
   right_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>(
-    shared_from_this(), right_image_topic_);
+    shared_from_this(), "/image_right/image_color_rect");
 
   sync_ = new message_filters::Synchronizer<sync_pol>(sync_pol(10), *left_sub_, *right_sub_);
   sync_->registerCallback(std::bind(&StereoNode::ImageCallback, this,
@@ -85,6 +70,11 @@ void StereoNode::ImageCallback(
   const sensor_msgs::msg::Image::ConstSharedPtr & msgLeft,
   const sensor_msgs::msg::Image::ConstSharedPtr & msgRight)
 {
+  if (!isInitialized()) {
+    RCLCPP_WARN(get_logger(), "Camera info not received, node has not been initialized!");
+    return;
+  }
+
   cv_bridge::CvImageConstPtr cv_ptrLeft;
   try {
     cv_ptrLeft = cv_bridge::toCvShare(msgLeft);

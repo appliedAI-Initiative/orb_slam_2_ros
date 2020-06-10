@@ -69,9 +69,6 @@ private:
   std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>> right_sub_;
   message_filters::Synchronizer<sync_pol> * sync_;
 
-  std::string left_image_topic_;
-  std::string right_image_topic_;
-
   int resize_horizontal;
   int resize_vertical;
 };
