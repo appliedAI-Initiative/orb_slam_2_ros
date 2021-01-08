@@ -47,8 +47,11 @@
       <!-- Camera calibration parameters -->
       <!-- If the node should wait for a camera_info topic to take the camera calibration data -->
       <param name="load_calibration_from_cam" type="bool" value="false" />
-      <!-- Following values have been based on the calibration file associated with our serial number -->
       <!-- Camera calibration and distortion parameters (OpenCV) -->
+      <!-- Following values have been based on the calibration file associated with our serial number -->
+      <!-- The values can be extracted from the calibation file acquired from https://www.stereolabs.com/developers/calib/ -->
+      <param name="camera_fx" type="double" value="527.43" />
+      <!-- f_x = (resolution_x) / (2 * tan(HFOV / 2)) -->
       <!-- NOTE: The focal length (fx) corresponds to horizontal FOV of 101.0285! -->
       <param name="camera_fx" type="double" value="527.43" />
       <param name="camera_fy" type="double" value="527.185" />
