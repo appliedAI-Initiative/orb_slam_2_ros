@@ -26,7 +26,7 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <opencv2/core/core.hpp>
 
-#include <image_transport/image_transport.h>
+#include <image_transport/image_transport.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <tf2_ros/transform_broadcaster.h>
 

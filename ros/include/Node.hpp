@@ -21,7 +21,7 @@
 #ifndef NODE_HPP_
 #define NODE_HPP_
 
-#include <image_transport/image_transport.h>
+#include <image_transport/image_transport.hpp>
 #include <cv_bridge/cv_bridge.h>
 
 #include <message_filters/subscriber.h>
@@ -78,6 +78,8 @@ protected:
   ORB_SLAM2::System * orb_slam_;
   rclcpp::Time current_frame_time_;
   std::shared_ptr<image_transport::ImageTransport> image_transport_;
+
+  bool subscribe_best_effort_param_;
 
 private:
   void PublishMapPoints(std::vector<ORB_SLAM2::MapPoint *> map_points);
