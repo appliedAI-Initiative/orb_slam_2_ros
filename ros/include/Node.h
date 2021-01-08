@@ -25,9 +25,10 @@
 #include <ros/ros.h>
 #include <ros/time.h>
 #include <image_transport/image_transport.h>
-#include <tf/transform_broadcaster.h>
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/core/core.hpp>
+
+#include <tf2_ros/transform_broadcaster.h>
 
 #include <dynamic_reconfigure/server.h>
 #include <orb_slam2_ros/dynamic_reconfigureConfig.h>
@@ -69,7 +70,7 @@ class Node
     bool SaveMapSrv (orb_slam2_ros::SaveMap::Request &req, orb_slam2_ros::SaveMap::Response &res);
     void LoadOrbParameters (ORB_SLAM2::ORBParameters& parameters);
 
-    tf::Transform TransformFromMat (cv::Mat position_mat);
+    tf2::Transform TransformFromMat (cv::Mat position_mat);
     sensor_msgs::PointCloud2 MapPointsToPointCloud (std::vector<ORB_SLAM2::MapPoint*> map_points);
 
     dynamic_reconfigure::Server<orb_slam2_ros::dynamic_reconfigureConfig> dynamic_param_server_;

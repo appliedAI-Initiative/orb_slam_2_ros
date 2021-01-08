@@ -60,10 +60,12 @@ void Node::Update () {
   cv::Mat position = orb_slam_->GetCurrentPosition();
 
   if (!position.empty()) {
-    PublishPositionAsTransform (position);
+    if(publish_tf_param_){
+      PublishPositionAsTransform(position);
+    }
 
     if (publish_pose_param_) {
-      PublishPositionAsPoseStamped (position);
+      PublishPositionAsPoseStamped(position);
     }
   }
 
@@ -83,18 +85,27 @@ void Node::PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points) {
 
 
 void Node::PublishPositionAsTransform (cv::Mat position) {
-  if(publish_tf_param_){
-      tf::Transform transform = TransformFromMat (position);
-      static tf::TransformBroadcaster tf_broadcaster;
-      tf_broadcaster.sendTransform(tf::StampedTransform(transform, current_frame_time_, map_frame_id_param_, camera_frame_id_param_));
-  }
+  // Get transform from map to camera frame
+  tf2::Transform tf_transform = TransformFromMat(position);
+
+  // Make message
+  tf2::Stamped<tf2::Transform> tf_transform_stamped;
+  tf_transform_stamped = tf2::Stamped<tf2::Transform>(tf_transform, current_frame_time_, map_frame_id_param_);
+  geometry_msgs::TransformStamped msg = tf2::toMsg(tf_transform_stamped);
+  msg.child_frame_id = camera_frame_id_param_;
+  // Broadcast tf
+  static tf2_ros::TransformBroadcaster tf_broadcaster;
+  tf_broadcaster.sendTransform(msg);
 }
 
 void Node::PublishPositionAsPoseStamped (cv::Mat position) {
-  tf::Transform grasp_tf = TransformFromMat (position);
-  tf::Stamped<tf::Pose> grasp_tf_pose(grasp_tf, current_frame_time_, map_frame_id_param_);
+  tf2::Transform tf_position = TransformFromMat(position);
+  
+  // Make message
+  tf2::Stamped<tf2::Transform> tf_position_stamped;
+  tf_position_stamped = tf2::Stamped<tf2::Transform>(tf_position, current_frame_time_, map_frame_id_param_);
   geometry_msgs::PoseStamped pose_msg;
-  tf::poseStampedTFToMsg (grasp_tf_pose, pose_msg);
+  tf2::toMsg(tf_position_stamped, pose_msg);
   pose_publisher_.publish(pose_msg);
 }
 
@@ -108,7 +119,7 @@ void Node::PublishRenderedImage (cv::Mat image) {
 }
 
 
-tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
+tf2::Transform Node::TransformFromMat (cv::Mat position_mat) {
   cv::Mat rotation(3,3,CV_32F);
   cv::Mat translation(3,1,CV_32F);
 
@@ -116,15 +127,15 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
   translation = position_mat.rowRange(0,3).col(3);
 
 
-  tf::Matrix3x3 tf_camera_rotation (rotation.at<float> (0,0), rotation.at<float> (0,1), rotation.at<float> (0,2),
+  tf2::Matrix3x3 tf_camera_rotation (rotation.at<float> (0,0), rotation.at<float> (0,1), rotation.at<float> (0,2),
                                     rotation.at<float> (1,0), rotation.at<float> (1,1), rotation.at<float> (1,2),
                                     rotation.at<float> (2,0), rotation.at<float> (2,1), rotation.at<float> (2,2)
                                    );
 
-  tf::Vector3 tf_camera_translation (translation.at<float> (0), translation.at<float> (1), translation.at<float> (2));
+  tf2::Vector3 tf_camera_translation (translation.at<float> (0), translation.at<float> (1), translation.at<float> (2));
 
   //Coordinate transformation matrix from orb coordinate system to ros coordinate system
-  const tf::Matrix3x3 tf_orb_to_ros (0, 0, 1,
+  const tf2::Matrix3x3 tf_orb_to_ros (0, 0, 1,
                                     -1, 0, 0,
                                      0,-1, 0);
 
@@ -140,7 +151,7 @@ tf::Transform Node::TransformFromMat (cv::Mat position_mat) {
   tf_camera_rotation = tf_orb_to_ros*tf_camera_rotation;
   tf_camera_translation = tf_orb_to_ros*tf_camera_translation;
 
-  return tf::Transform (tf_camera_rotation, tf_camera_translation);
+  return tf2::Transform (tf_camera_rotation, tf_camera_translation);
 }
 
 
