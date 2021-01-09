@@ -161,7 +161,8 @@ source devel/setup.bash
 |----------------------|----------------------------------------------------------------|------------------------------------------------------------------|------------------------------------------------------------|
 | Intel RealSense r200 | ``` roslaunch orb_slam2_ros orb_slam2_r200_mono.launch ```     | ``` roslaunch orb_slam2_ros orb_slam2_r200_stereo.launch ```     | ``` roslaunch orb_slam2_ros orb_slam2_r200_rgbd.launch ``` |
 | Intel RealSense d435 | ``` roslaunch orb_slam2_ros orb_slam2_d435_mono.launch ```     | -                                                                | ``` roslaunch orb_slam2_ros orb_slam2_d435_rgbd.launch ``` |
-| Mynteye S            | ```roslaunch orb_slam2_ros orb_slam2_mynteye_s_mono.launch ``` | ```roslaunch orb_slam2_ros orb_slam2_mynteye_s_stereo.launch ``` | -                                                          |                     |                                                            |                                                              |                                                            |
+| Mynteye S            | ```roslaunch orb_slam2_ros orb_slam2_mynteye_s_mono.launch ``` | ```roslaunch orb_slam2_ros orb_slam2_mynteye_s_stereo.launch ``` | -                                                          | 
+| Stereolabs ZED 2     | -                                                              | ```roslaunch orb_slam2_ros orb_slam2_zed2_stereo.launch ```      | -                                                          |                     |                                                            |                                                              |                                                            |
 
 Use the command from the corresponding cell for your camera to launch orb_slam2_ros with the right parameters for your setup.
 
