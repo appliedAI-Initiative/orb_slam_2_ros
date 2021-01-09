@@ -106,6 +106,7 @@ The static parameters are send to the ROS parameter server at startup and are no
 - **publish_pose**: Bool. If a PoseStamped message should be published. Even if this is false the tf will still be published.
 - **pointcloud_frame_id**: String. The Frame id of the Pointcloud/map.
 - **camera_frame_id**: String. The Frame id of the camera position.
+- **target_frame_id**: String. Map transform and pose estimate will be provided in this frame id if set.
 - **load_calibration_from_cam**: Bool. If true, camera calibration is read from a `camera_info` topic. Otherwise it is read from launch file params.
 
 Dynamic parameters can be changed at runtime. Either by updating them directly via the command line or by using [rqt_reconfigure](http://wiki.ros.org/rqt_reconfigure) which is the recommended way.
@@ -121,9 +122,9 @@ Finally, the intrinsic camera calibration parameters along with some hyperparame
 ### Published topics
 The following topics are being published and subscribed to by the nodes:
 - All nodes publish (given the settings) a **PointCloud2** containing all key points of the map.
-- Also all nodes publish (given the settings) a **PoseStamped** with the current pose of the camera.
+- Also all nodes publish (given the settings) a **PoseStamped** with the current pose of the camera frame, or the target frame if `target_frame_id` is set.
 - Live **image** from the camera containing the currently found key points and a status text.
-- A **tf** from the pointcloud frame id to the camera frame id (the position).
+- A **tf** from the pointcloud frame id to the camera frame id (the position), or the target frame if `target_frame_id` is set.
 
 ### Subscribed topics
 - The mono node subscribes to:
@@ -161,7 +162,8 @@ source devel/setup.bash
 |----------------------|----------------------------------------------------------------|------------------------------------------------------------------|------------------------------------------------------------|
 | Intel RealSense r200 | ``` roslaunch orb_slam2_ros orb_slam2_r200_mono.launch ```     | ``` roslaunch orb_slam2_ros orb_slam2_r200_stereo.launch ```     | ``` roslaunch orb_slam2_ros orb_slam2_r200_rgbd.launch ``` |
 | Intel RealSense d435 | ``` roslaunch orb_slam2_ros orb_slam2_d435_mono.launch ```     | -                                                                | ``` roslaunch orb_slam2_ros orb_slam2_d435_rgbd.launch ``` |
-| Mynteye S            | ```roslaunch orb_slam2_ros orb_slam2_mynteye_s_mono.launch ``` | ```roslaunch orb_slam2_ros orb_slam2_mynteye_s_stereo.launch ``` | -                                                          |                     |                                                            |                                                              |                                                            |
+| Mynteye S            | ```roslaunch orb_slam2_ros orb_slam2_mynteye_s_mono.launch ``` | ```roslaunch orb_slam2_ros orb_slam2_mynteye_s_stereo.launch ``` | -                                                          | 
+| Stereolabs ZED 2     | -                                                              | ```roslaunch orb_slam2_ros orb_slam2_zed2_stereo.launch ```      | -                                                          |                     |                                                            |                                                              |                                                            |
 
 Use the command from the corresponding cell for your camera to launch orb_slam2_ros with the right parameters for your setup.
 
