@@ -58,6 +58,8 @@ void Node::Init () {
   if (publish_pose_param_) {
     pose_publisher_ = node_handle_.advertise<geometry_msgs::PoseStamped> (name_of_node_+"/pose", 1);
   }
+
+  status_gba_publisher_ = node_handle_.advertise<std_msgs::Bool> (name_of_node_+"/gba_running", 1);
 }
 
 
@@ -79,6 +81,8 @@ void Node::Update () {
   if (publish_pointcloud_param_) {
     PublishMapPoints (orb_slam_->GetAllMapPoints());
   }
+
+  PublishGBAStatus (orb_slam_->isRunningGBA());
 
 }
 
@@ -174,6 +178,11 @@ void Node::PublishPositionAsPoseStamped (cv::Mat position) {
   pose_publisher_.publish(pose_msg);
 }
 
+void Node::PublishGBAStatus (bool gba_status) {
+  std_msgs::Bool gba_status_msg;
+  gba_status_msg.data = gba_status;
+  status_gba_publisher_.publish(gba_status_msg);
+}
 
 void Node::PublishRenderedImage (cv::Mat image) {
   std_msgs::Header header;
