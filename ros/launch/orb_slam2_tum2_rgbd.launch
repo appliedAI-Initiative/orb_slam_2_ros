@@ -13,11 +13,44 @@
        <!-- static parameters -->
        <param name="load_map" type="bool" value="false" />
        <param name="map_file" type="string" value="map.bin" />
-       <param name="settings_file" type="string" value="$(find orb_slam2_ros)/orb_slam2/config/TUM2.yaml" />
        <param name="voc_file" type="string" value="$(find orb_slam2_ros)/orb_slam2/Vocabulary/ORBvoc.txt" />
 
        <param name="pointcloud_frame_id" type="string" value="map" />
        <param name="camera_frame_id" type="string" value="camera_link" />
        <param name="min_num_kf_in_map" type="int" value="5" />
+
+       # Original line, commented out.
+       # <param name="settings_file" type="string" value="$(find orb_slam2_ros)/orb_slam2/config/TUM2.yaml" />
+       # Added lines below: Copy of TUM2.yaml parameters directly into this launch file.
+       <!-- Camera parameters -->
+       <!-- Camera frames per second -->
+       <param name="camera_fps" type="int" value="30" />
+       <!-- Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale) -->
+       <param name="camera_rgb_encoding" type="bool" value="false" />
+       <!-- Close/Far threshold. Baseline times. -->
+       <param name="ThDepth" type="double" value="40.0" />
+       <!-- Deptmap values factor (what pixel value in the depth image corresponds to 1m) -->
+       <param name="depth_map_factor" type="double" value="1.0" />
+        <!-- Camera calibration parameters -->
+        <!--If the node should wait for a camera_info topic to take the camera calibration data-->
+       <param name="load_calibration_from_cam" type="bool" value="false" />
+       <!-- Camera calibration and distortion parameters (OpenCV) -->
+       <param name="camera_fx" type="double" value="535.4" />
+       <param name="camera_fy" type="double" value="539.2" />
+       <param name="camera_cx" type="double" value="320.1" />
+       <param name="camera_cy" type="double" value="247.6" />
+       <!-- Camera calibration and distortion parameters (OpenCV) -->
+       <param name="camera_k1" type="double" value="0.0" />
+       <param name="camera_k2" type="double" value="0.0" />
+       <param name="camera_p1" type="double" value="0.0" />
+       <param name="camera_p2" type="double" value="0.0" />
+       <param name="camera_k3" type="double" value="0.0" />
+       <param name="camera_baseline" type="double" value="40" />
+       <!-- ORB parameters -->
+       <param name="/ORBextractor/nFeatures" type="int" value="1000" />
+       <param name="/ORBextractor/scaleFactor" type="double" value="1.2" />
+       <param name="/ORBextractor/nLevels" type="int" value="8" />
+       <param name="/ORBextractor/iniThFAST" type="int" value="20" />
+       <param name="/ORBextractor/minThFAST" type="int" value="7" />
   </node>
 </launch>
