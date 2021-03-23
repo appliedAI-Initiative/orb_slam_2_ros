@@ -23,7 +23,7 @@ RUN add-apt-repository "deb http://realsense-hw-public.s3.amazonaws.com/Debian/a
 
 # Install required realsense and ROS packages
 RUN apt-get update && \
-    apt-get install librealsense2-dkms librealsense2-utils librealsense2-dev librealsense2-dbg python-catkin-tools -y
+    apt-get install librealsense2-dkms librealsense2-utils librealsense2-dev librealsense2-dbg ros-melodic-tf2-geometry-msgs python-catkin-tools -y
 
 WORKDIR /home/ros
 
@@ -35,3 +35,7 @@ RUN rosdep update \
 RUN catkin config \
       --extend /opt/ros/$ROS_DISTRO && \
     catkin build
+
+RUN echo "source /home/ros/devel/setup.bash" >> /$HOME/.bashrc
+
+CMD "bash"
