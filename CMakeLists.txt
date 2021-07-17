@@ -101,8 +101,8 @@ ament_target_dependencies(orb_slam2_ros_core
 target_link_libraries(orb_slam2_ros_core
   ${OpenCV_LIBS}
   ${EIGEN3_LIBS}
-  ${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/DBoW2/lib/libDBoW2.so
-  ${PROJECT_SOURCE_DIR}/orb_slam2/Thirdparty/g2o/lib/libg2o.so
+  DBoW2
+  g2o
 )
 
 # map serialization addition - library boost serialization 
