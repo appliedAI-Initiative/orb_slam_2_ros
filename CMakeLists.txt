@@ -23,6 +23,8 @@ std_msgs
 cv_bridge
 image_transport
 tf
+tf2_geometry_msgs
+tf2_ros
 sensor_msgs
 dynamic_reconfigure
 message_generation
