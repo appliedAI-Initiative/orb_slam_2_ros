@@ -4,6 +4,8 @@
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
+#include "System.h"
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "Stereo");
