@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <fstream>
 #include <chrono>
+#include <opencv2/imgproc/imgproc_c.h>
+#include <opencv2/core/types.hpp>
 
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
