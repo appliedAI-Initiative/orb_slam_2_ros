@@ -7,6 +7,9 @@ DenseMap::DenseMap () {
   is_new_ = false;
   create_dense_map_ = true;
   current_task_id_ = 0;
+  /*
+   * Constructing a TaskQueue object. Not sure yet how and where we use it.
+   */
   task_queue_ = new TaskQueue::TaskQueue<DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr, cv::Mat> (1);
 }
 

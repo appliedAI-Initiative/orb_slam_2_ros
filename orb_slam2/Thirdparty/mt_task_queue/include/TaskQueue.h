@@ -19,6 +19,12 @@ For more information see the README.
 #include "Task.h"
 #include "Worker.h"
 
+// required for explicit template instantiation in TaskQueue.cpp
+#include <boost/any.hpp>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include<opencv2/core/core.hpp>
+
 namespace TaskQueue {
 
 template <typename ReturnType, typename... Args>
@@ -27,17 +33,34 @@ class TaskQueue {
     TaskQueue (unsigned int num_worker_threads);
     ~TaskQueue ();
 
-    void AddTask (std::function<ReturnType(Args...)> task_function) {AddTask (1, task_function);}
-    void AddTask (unsigned int priority, std::function<ReturnType(Args...)> task_function) {AddTask (0, 1, task_function);}
-    void AddTask (unsigned int task_id, unsigned int priority, std::function<ReturnType(Args...)> task_function);
-    Task<ReturnType, Args...> GetTask (unsigned int task_id);
+    /*
+     * AddTask function as a bare minimum requires the task function alongside its arguments. Priority and task_id need to be given
+     * or can be defaulted.
+     */
+    void AddTask (unsigned int task_id, unsigned int priority, std::function<ReturnType(Args...)> task_function, Args... function_args);
+    void AddTask (unsigned int priority, std::function<ReturnType(Args...)> task_function, Args... function_args) {
+        AddTask(0, priority, task_function, function_args...);
+    }
+    void AddTask (std::function<ReturnType(Args...)> task_function, Args... function_args) {
+        AddTask(1, 0, task_function, function_args...);
+    }
+
+    /*
+     * The task that we return has to be a pointer to the Task instance because otherwise a copy construction of Task  is required
+     * when we call this function and copy construction of task can be problematic due to atomic functions and thread locks inside it,
+     * which can't be easily copied.
+     */
+    Task<ReturnType, Args...>* GetTask (unsigned int task_id);
     bool ResultAvailable (unsigned int task_id);
     unsigned int NumJobsCurrentlyRunning ();
 
   private:
     std::priority_queue <Task<ReturnType, Args...>, std::vector<Task<ReturnType, Args...>>, std::greater<Task<ReturnType, Args...>>> task_queue_;
     std::vector<Worker<ReturnType, Args...>> workers_;
-    std::map<unsigned int, Task<ReturnType, Args...>> results_;
+    /*
+     * The results_ buffer has to contain pointers to Task objects because our GetTask function now returns a pointer rather than a Task object.
+     */
+    std::map<unsigned int, Task<ReturnType, Args...>*> results_;
     std::mutex queue_mutex_;
     std::mutex map_mutex_;
     std::condition_variable condition_var_;
