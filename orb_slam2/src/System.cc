@@ -28,9 +28,10 @@
 namespace ORB_SLAM2
 {
 
-System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor
-               ):mSensor(sensor), mbReset(false),mbActivateLocalizationMode(false),
-        mbDeactivateLocalizationMode(false)
+System::System(const string strVocFile, const eSensor sensor, ORBParameters& parameters,
+               const std::string & map_file, bool load_map): // map serialization addition
+               mSensor(sensor), mbReset(false),mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false),
+               map_file(map_file), load_map(load_map)
 {
     // Output welcome message
     cout << endl <<
@@ -38,6 +39,11 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     "This program comes with ABSOLUTELY NO WARRANTY;" << endl  <<
     "This is free software, and you are welcome to redistribute it" << endl <<
     "under certain conditions. See LICENSE.txt." << endl << endl;
+
+    cout << "OpenCV version : " << CV_VERSION << endl;
+    cout << "Major version : " << CV_MAJOR_VERSION << endl;
+    cout << "Minor version : " << CV_MINOR_VERSION << endl;
+    cout << "Subminor version : " << CV_SUBMINOR_VERSION << endl;
 
     cout << "Input sensor was set to: ";
 
@@ -47,15 +53,6 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         cout << "Stereo" << endl;
     else if(mSensor==RGBD)
         cout << "RGB-D" << endl;
-
-    //Check settings file
-    cv::FileStorage fsSettings(strSettingsFile.c_str(), cv::FileStorage::READ);
-    if(!fsSettings.isOpened())
-    {
-       cerr << "Failed to open settings file at: " << strSettingsFile << endl;
-       exit(-1);
-    }
-
 
     //Load ORB Vocabulary
     cout << endl << "Loading ORB Vocabulary." << endl;
@@ -68,13 +65,13 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     if(!bVocLoad)
     {
         cerr << "Cannot find binary file for vocabulary. " << endl;
-        cerr << "Falied to open at: " << strVocFile+".bin" << endl;
+        cerr << "Failed to open at: " << strVocFile+".bin" << endl;
         cerr << "Trying to open the text file. This could take a while..." << endl;
         bool bVocLoad2 = mpVocabulary->loadFromTextFile(strVocFile);
         if(!bVocLoad2)
         {
             cerr << "Wrong path to vocabulary. " << endl;
-            cerr << "Falied to open at: " << strVocFile << endl;
+            cerr << "Failed to open at: " << strVocFile << endl;
             exit(-1);
         }
         cerr << "Saving the vocabulary to binary for the next time to " << strVocFile+".bin" << endl;
@@ -83,11 +80,18 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     cout << "Vocabulary loaded!" << endl << endl;
 
-    //Create KeyFrame Database
-    mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
-
-    //Create the Map
-    mpMap = new Map();
+    // begin map serialization addition
+    // load serialized map
+    if (load_map && LoadMap(map_file)) {
+        std::cout << "Using loaded map with " << mpMap->MapPointsInMap() << " points\n" << std::endl;
+    }
+    else {
+        //Create KeyFrame Database
+        mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
+        //Create the Map
+        mpMap = new Map();
+    }
+    // end map serialization addition
 
     //Create Drawers. These are used by the Viewer
     mpFrameDrawer = new FrameDrawer(mpMap);
@@ -97,7 +101,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
     mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer,
-                             mpMap, mpDenseMap, mpKeyFrameDatabase, strSettingsFile, mSensor);
+                             mpMap, mpDenseMap, mpKeyFrameDatabase, mSensor, parameters);
 
     //Initialize the Local Mapping thread and launch
     mpLocalMapper = new LocalMapping(mpMap, mSensor==MONOCULAR);
@@ -285,6 +289,11 @@ bool System::MapChanged()
     }
     else
         return false;
+}
+
+bool System::isRunningGBA()
+{
+    return  mpLoopCloser->isRunningGBA();
 }
 
 void System::Reset()
@@ -491,14 +500,59 @@ std::vector<MapPoint*> System::GetAllMapPoints() {
   return mpMap->GetAllMapPoints();
 }
 
+
+bool System::SetCallStackSize (const rlim_t kNewStackSize) {
+    struct rlimit rlimit;
+    int operation_result;
+
+    operation_result = getrlimit(RLIMIT_STACK, &rlimit);
+    if (operation_result != 0) {
+        std::cerr << "Error getting the call stack struct" << std::endl;
+        return false;
+    }
+
+    if (kNewStackSize > rlimit.rlim_max) {
+        std::cerr << "Requested call stack size too large" << std::endl;
+        return false;
+    }
+
+    if (rlimit.rlim_cur <= kNewStackSize) {
+        rlimit.rlim_cur = kNewStackSize;
+        operation_result = setrlimit(RLIMIT_STACK, &rlimit);
+        if (operation_result != 0) {
+            std::cerr << "Setrlimit returned result: " << operation_result << std::endl;
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+
+rlim_t System::GetCurrentCallStackSize () {
+    struct rlimit rlimit;
+    int operation_result;
+
+    operation_result = getrlimit(RLIMIT_STACK, &rlimit);
+    if (operation_result != 0) {
+        std::cerr << "Error getting the call stack struct" << std::endl;
+        return 16 * 1024L * 1024L; //default
+    }
+
+    return rlimit.rlim_cur;
+}
+
+
 void System::ActivateLocalizationMode()
 {
+    currently_localizing_only_ = true;
     unique_lock<mutex> lock(mMutexMode);
     mbActivateLocalizationMode = true;
 }
 
 void System::DeactivateLocalizationMode()
 {
+    currently_localizing_only_ = false;
     unique_lock<mutex> lock(mMutexMode);
     mbDeactivateLocalizationMode = true;
 }
@@ -512,6 +566,92 @@ void System::EnableLocalizationOnly (bool localize_only) {
       DeactivateLocalizationMode();
     }
   }
+
+  std::cout << "Enable localization only: " << (localize_only?"true":"false") << std::endl;
+}
+
+
+// map serialization addition
+bool System::SaveMap(const string &filename) {
+    unique_lock<mutex>MapPointGlobal(MapPoint::mGlobalMutex);
+    std::ofstream out(filename, std::ios_base::binary);
+    if (!out) {
+        std::cerr << "cannot write to map file: " << map_file << std::endl;
+        return false;
+    }
+
+    const rlim_t kNewStackSize = 64L * 1024L * 1024L;   // min stack size = 64 Mb
+    const rlim_t kDefaultCallStackSize = GetCurrentCallStackSize();
+    if (!SetCallStackSize(kNewStackSize)) {
+        std::cerr << "Error changing the call stack size; Aborting" << std::endl;
+        return false;
+    }
+
+    try {
+        std::cout << "saving map file: " << map_file << std::flush;
+        boost::archive::binary_oarchive oa(out, boost::archive::no_header);
+        oa << mpMap;
+        oa << mpKeyFrameDatabase;
+        std::cout << " ... done" << std::endl;
+        out.close();
+    } catch (const std::exception &e) {
+        std::cerr << e.what() << std::endl;
+        SetCallStackSize(kDefaultCallStackSize);
+        return false;
+    } catch (...) {
+        std::cerr << "Unknows exeption" << std::endl;
+        SetCallStackSize(kDefaultCallStackSize);
+        return false;
+    }
+
+    SetCallStackSize(kDefaultCallStackSize);
+    return true;
+}
+
+bool System::LoadMap(const string &filename) {
+
+    unique_lock<mutex>MapPointGlobal(MapPoint::mGlobalMutex);
+    std::ifstream in(filename, std::ios_base::binary);
+    if (!in) {
+        cerr << "Cannot open map file: " << map_file << " , you need create it first!" << std::endl;
+        return false;
+    }
+
+    const rlim_t kNewStackSize = 64L * 1024L * 1024L;   // min stack size = 64 Mb
+    const rlim_t kDefaultCallStackSize = GetCurrentCallStackSize();
+    if (!SetCallStackSize(kNewStackSize)) {
+        std::cerr << "Error changing the call stack size; Aborting" << std::endl;
+        return false;
+    }
+
+    std::cout << "Loading map file: " << map_file << std::flush;
+    boost::archive::binary_iarchive ia(in, boost::archive::no_header);
+    ia >> mpMap;
+    ia >> mpKeyFrameDatabase;
+    mpKeyFrameDatabase->SetORBvocabulary(mpVocabulary);
+    std::cout << " ... done" << std::endl;
+
+    std::cout << "Map reconstructing" << flush;
+    vector<ORB_SLAM2::KeyFrame*> vpKFS = mpMap->GetAllKeyFrames();
+    unsigned long mnFrameId = 0;
+    for (auto it:vpKFS) {
+
+        it->SetORBvocabulary(mpVocabulary);
+        it->ComputeBoW();
+
+        if (it->mnFrameId > mnFrameId) {
+            mnFrameId = it->mnFrameId;
+        }
+    }
+
+    Frame::nNextId = mnFrameId;
+
+    std::cout << " ... done" << std::endl;
+    in.close();
+
+    SetCallStackSize(kDefaultCallStackSize);
+
+    return true;
 }
 
 } //namespace ORB_SLAM

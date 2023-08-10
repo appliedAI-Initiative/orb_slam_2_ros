@@ -416,6 +416,45 @@ int MapPoint::PredictScale(const float &currentDist, Frame* pF)
     return nScale;
 }
 
-
+// map serialization addition
+MapPoint::MapPoint():
+    nObs(0), mnTrackReferenceForFrame(0),
+    mnLastFrameSeen(0), mnBALocalForKF(0), mnFuseCandidateForKF(0), mnLoopPointForKF(0), mnCorrectedByKF(0),
+    mnCorrectedReference(0), mnBAGlobalForKF(0),mnVisible(1), mnFound(1), mbBad(false),
+    mpReplaced(static_cast<MapPoint*>(NULL)), mfMinDistance(0), mfMaxDistance(0)
+{}
+template<class Archive>
+void MapPoint::serialize(Archive &ar, const unsigned int version)
+{
+    unique_lock<mutex> lock_Pos(mMutexPos);
+    unique_lock<mutex> lock_Features(mMutexFeatures);
+    ar & mnId & nNextId & mnFirstKFid & mnFirstFrame & nObs;
+    // Tracking related vars
+    ar & mTrackProjX;
+    ar & mTrackProjY;
+    ar & mTrackProjXR;
+    ar & mbTrackInView;
+    ar & mnTrackScaleLevel;
+    ar & mTrackViewCos;
+    ar & mnTrackReferenceForFrame;
+    ar & mnLastFrameSeen;
+    // Local Mapping related vars
+    ar & mnBALocalForKF & mnFuseCandidateForKF;
+    // Loop Closing related vars
+    ar & mnLoopPointForKF & mnCorrectedByKF & mnCorrectedReference & mPosGBA & mnBAGlobalForKF;
+    // don't save the mutex
+    ar & mWorldPos;
+    ar & mObservations;
+    ar & mNormalVector;
+    ar & mDescriptor;
+    ar & mpRefKF;
+    ar & mnVisible & mnFound;
+    ar & mbBad & mpReplaced;
+    ar & mfMinDistance & mfMaxDistance;
+    ar & mpMap;
+    // don't save the mutex
+}
+template void MapPoint::serialize(boost::archive::binary_iarchive&, const unsigned int);
+template void MapPoint::serialize(boost::archive::binary_oarchive&, const unsigned int);
 
 } //namespace ORB_SLAM
