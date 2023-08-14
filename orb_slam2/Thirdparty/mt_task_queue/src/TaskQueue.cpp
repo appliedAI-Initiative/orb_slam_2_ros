@@ -9,9 +9,10 @@ TaskQueue<ReturnType, Args...>::TaskQueue (unsigned int num_worker_threads) {
   }
 
   for (unsigned int i = 0; i < num_worker_threads; i++) {
-    workers_.push_back (Worker<ReturnType, Args...> (task_queue_, results_, &queue_mutex_, &map_mutex_, condition_var_));
+    workers_.push_back (new Worker<ReturnType, Args...> (task_queue_, results_, &queue_mutex_, &map_mutex_, condition_var_));
   }
 }
+
 
 
 template <typename ReturnType, typename... Args>
@@ -21,7 +22,8 @@ TaskQueue<ReturnType, Args...>::~TaskQueue () {
    * out of the queue, which would cause copy-construction.
    */
   for (unsigned int i = 0; i < workers_.size(); i++) {
-    workers_[i].EndWorker();
+    //std::cout << "AE: TQ DESTR" << std::endl;
+    workers_[i]->EndWorker();
   }
 }
 
@@ -81,7 +83,7 @@ unsigned int TaskQueue<ReturnType, Args...>::NumJobsCurrentlyRunning () {
    * out of the queue, which would cause copy-construction.
    */
   for (unsigned int i = 0; i < workers_.size(); i++) {
-    if (!workers_[i].IsIdeling()) { //# if (workers_[i].IsIdeling()) { //# surely we want to count workers that are NOT idle though???
+    if (!workers_[i]->IsIdeling()) { //# if (workers_[i].IsIdeling()) { //# surely we want to count workers that are NOT idle though???
       workers_working ++;
     }
   }

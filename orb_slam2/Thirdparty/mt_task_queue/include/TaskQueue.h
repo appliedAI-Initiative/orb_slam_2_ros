@@ -56,7 +56,7 @@ class TaskQueue {
 
   private:
     std::priority_queue <Task<ReturnType, Args...>, std::vector<Task<ReturnType, Args...>>, std::greater<Task<ReturnType, Args...>>> task_queue_;
-    std::vector<Worker<ReturnType, Args...>> workers_;
+    std::vector<Worker<ReturnType, Args...>*> workers_;
     /*
      * The results_ buffer has to contain pointers to Task objects because our GetTask function now returns a pointer rather than a Task object.
      */

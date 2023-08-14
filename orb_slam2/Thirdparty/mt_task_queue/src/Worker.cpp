@@ -17,7 +17,19 @@ Worker<ReturnType, Args...>::Worker (std::priority_queue<Task<ReturnType, Args..
   idle_ = true;
   queue_mutex_ = queue_mutex;
   map_mutex_ = map_mutex;
-  Operator ();
+
+  /*
+   * Each worker has to run its own separate thread because otherwise we will never get out of constructor here since the 
+   * Operator function blocks for most of the time and certainly at the beginning.
+   */
+  std::thread tWorker(&Worker::Operator, this);
+  //Operator ();
+  tWorker.detach();
+}
+
+template <typename ReturnType, typename... Args>
+Worker<ReturnType, Args...>::~Worker () {
+  std::cout << "AE: WORKER DESTR" << std::endl;
 }
 
 /**
@@ -49,23 +61,26 @@ void Worker<ReturnType, Args...>::Operator () {
   while (!end_operator_flag_) {
     idle_ = true;
     condition_var_.wait(lock);
-
+    std::cout << "AE2.1.2.2.4" << std::endl;
     /*
      * Since mutexes are now passed as pointers, we need pointers' access operator -> .
      */
     queue_mutex_->lock();
+    std::cout << "AE2.1.2.2.5" << std::endl;
     if (task_queue_.empty()) {
       queue_mutex_->unlock();
       continue;
     }
     idle_ = false;
-    
+    std::cout << "AE2.1.2.2.6" << std::endl;
     Task<ReturnType, Args...> top_task = task_queue_.top();
+    std::cout << "AE2.1.2.2.7" << std::endl;
     task_queue_.pop();
 
     queue_mutex_->unlock();
-
+    std::cout << "AE2.1.2.2.8" << std::endl;
     top_task.RunTask ();
+    std::cout << "AE2.1.2.2.9" << std::endl;
 
     if (top_task.HasReturnValue()) {
       /*
@@ -75,8 +90,13 @@ void Worker<ReturnType, Args...>::Operator () {
       results_[top_task.GetId()] = &top_task;
       map_mutex_->unlock();
     }
+    std::cout << "AE2.1.2.2.10" << std::endl;
   }
 
+  /*
+   * remove itself when all mutexes and conditional vars are no longer in use.
+   */
+  delete this;
 }
 
 // Explicit template instantiation for the supported types. This is needed so that the rest of the project can link to this module. If this is not here, then support for the

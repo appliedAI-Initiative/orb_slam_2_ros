@@ -39,6 +39,9 @@ class Worker {
     void EndWorker() {end_operator_flag_ = true;}
     bool IsIdeling () {return idle_;}
 
+    ~Worker();
+
+
   private:
     std::priority_queue <Task<ReturnType, Args...>, std::vector<Task<ReturnType, Args...>>, std::greater<Task<ReturnType, Args...>>> &task_queue_;
     /*
