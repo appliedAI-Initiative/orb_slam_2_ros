@@ -2,7 +2,8 @@
   <node name="orb_slam2_rgbd" pkg="orb_slam2_ros"
       type="orb_slam2_ros_rgbd" output="screen">
 
-       <remap from="/camera/rgb/image_raw" to="/camera/color/image_rect_color" />
+       <!-- remap from="/camera/rgb/image_raw" to="/camera/color/image_rect_color" / -->
+       <remap from="/camera/rgb/image_raw" to="/camera/color/image_raw" />
        <remap from="/camera/depth_registered/image_raw" to="/camera/depth/image_rect_raw" />
 
        <param name="publish_pointcloud" type="bool" value="true" />
