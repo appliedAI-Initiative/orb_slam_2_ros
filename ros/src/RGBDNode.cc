@@ -1,31 +1,26 @@
 #include "RGBDNode.h"
 
+#include "System.h"
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "RGBD");
     ros::start();
 
-    if(argc != 3)
-    {
-        ROS_ERROR ("Path to vocabulary and path to settings need to be set.");
-        ros::shutdown();
-        return 1;
+    if(argc > 1) {
+        ROS_WARN ("Arguments supplied via command line are neglected.");
     }
 
-    // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::RGBD);
     ros::NodeHandle node_handle;
+
+    // Create SLAM system. It initializes all system threads and gets ready to process frames.
     image_transport::ImageTransport image_transport (node_handle);
 
-    RGBDNode node (&SLAM, node_handle, image_transport);
+    RGBDNode node (ORB_SLAM2::System::RGBD, node_handle, image_transport);
+
+    node.Init();
 
     ros::spin();
-
-    // Stop all threads
-    SLAM.Shutdown();
-
-    // Save camera trajectory
-    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
 
     ros::shutdown();
 
@@ -33,9 +28,10 @@ int main(int argc, char **argv)
 }
 
 
-RGBDNode::RGBDNode (ORB_SLAM2::System* pSLAM, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) : Node (pSLAM, node_handle, image_transport) {
+RGBDNode::RGBDNode (const ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) : Node (sensor, node_handle, image_transport) {
   rgb_subscriber_ = new message_filters::Subscriber<sensor_msgs::Image> (node_handle, "/camera/rgb/image_raw", 1);
   depth_subscriber_ = new message_filters::Subscriber<sensor_msgs::Image> (node_handle, "/camera/depth_registered/image_raw", 1);
+  camera_info_topic_ = "/camera/rgb/camera_info";
 
   sync_ = new message_filters::Synchronizer<sync_pol> (sync_pol(10), *rgb_subscriber_, *depth_subscriber_);
   sync_->registerCallback(boost::bind(&RGBDNode::ImageCallback, this, _1, _2));

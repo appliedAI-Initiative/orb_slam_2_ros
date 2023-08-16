@@ -7,6 +7,9 @@ DenseMap::DenseMap () {
   is_new_ = false;
   create_dense_map_ = true;
   current_task_id_ = 0;
+  /*
+   * Constructing a TaskQueue object. Not sure yet how and where we use it.
+   */
   task_queue_ = new TaskQueue::TaskQueue<DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr, cv::Mat> (1);
 }
 
@@ -50,17 +53,17 @@ void DenseMap::AddFrameToMap (unsigned long int frame_id) {
   MatsToPclRGBDCloud (depth_map_, rgb_map_, map);
   DenseMap::PointCloudRGBD::Ptr frame (new DenseMap::PointCloudRGBD);
   MatsToPclRGBDCloud (raw_map_data_[frame_id].depth_img, raw_map_data_[frame_id].rgb_img, frame);
-
+  std::cout << "AE: AddFrameToMap 1 " << std::endl;
   while (task_queue_->NumJobsCurrentlyRunning () > 0) {
   } //Wait until current job has finished
-
+  std::cout << "AE: AddFrameToMap 2 " << std::endl;
   //std::function<DenseMap::PointCloudRGBD::Ptr(DenseMap::PointCloudRGBD::Ptr, DenseMap::PointCloudRGBD::Ptr, cv::Mat)>
   //auto test = std::bind(&DenseMap::FitFrame, this, map, frame, raw_map_data_[frame_id].position);
   //DenseMap::FitFrame (map, frame, raw_map_data_[frame_id].position);  //&DenseMap::FitFrame;
   //task_queue_->AddTask (current_task_id_, 1, DenseMap::FitFrame);
   //task_queue_->AddTask (current_task_id_, 1, test);
   PclRGBDCloudToMats (map, depth_map_, rgb_map_);
-
+  std::cout << "AE: AddFrameToMap 3 " << std::endl;
   is_new_ = true;
 }
 
